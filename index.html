@@ -1,0 +1,34 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b4f9c"><title>Rota Certa</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+  <section id="login-view" class="login-view">
+    <form id="login-form" class="login-card">
+      <span class="brand-mark">RC</span><span class="label">GESTÃO DE FROTA</span><h1>Rota Certa</h1><p>Acesse suas viagens e registre as despesas com segurança.</p>
+      <label>E-mail<input name="email" type="email" value="motorista@rotacerta.com" required></label>
+      <label>Senha<input name="password" type="password" value="Motorista123" required></label>
+      <p id="login-error" class="error"></p><button class="primary wide">Entrar</button><button type="button" id="open-company" class="company-signup"><span>＋</span> Cadastrar nova empresa</button>
+      <small>Teste: motorista@rotacerta.com / Motorista123<br>Admin: admin@rotacerta.com / Admin123</small>
+    </form>
+  </section>
+  <dialog id="company-dialog"><form id="company-form"><div class="modal-head"><div><span class="label">PRIMEIRO ACESSO</span><h2>Cadastrar nova empresa</h2></div><button type="button" id="close-company" class="icon-button">×</button></div><div class="form-grid">
+    <label>Nome da empresa<input name="name" required></label><label>CEP<input name="cep" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" required placeholder="Somente números"></label><label>CNPJ<input name="cnpj" inputmode="numeric" maxlength="14" pattern="[0-9]{14}" required placeholder="Somente números"></label><label>E-mail responsável<input name="email" type="email" maxlength="254" required></label><label>Nome responsável<input name="responsibleName" required></label><label>Senha<input name="password" type="password" minlength="8" required></label>
+  </div><p id="company-error" class="error"></p><div class="form-actions"><button type="button" id="cancel-company" class="secondary">Cancelar</button><button class="primary">Criar empresa e administrador</button></div></form></dialog>
+  <div id="app-view" hidden>
+    <header class="topbar"><div><span class="eyebrow">GESTÃO DE FROTA</span><h1>Rota Certa</h1></div><div class="user-area"><div class="user-identity"><span id="user-name"></span><small id="company-name"></small></div><button id="logout" class="avatar" title="Sair">↪</button></div></header>
+    <main><section class="welcome"><div><p id="welcome-copy"></p><h2 id="page-title">Suas viagens</h2></div><span id="role-badge" class="status"></span></section>
+      <nav id="admin-nav" class="admin-nav" hidden aria-label="Cadastros administrativos">
+        <button data-admin="reviews" class="active">Validações</button><button data-admin="users">Usuários</button><button data-admin="vehicles">Veículos</button><button data-admin="trips">Viagens</button><button data-admin="customers">Clientes</button>
+      </nav>
+      <div id="notice"></div><section id="trip-list" class="trip-grid"></section><section id="trip-detail" hidden></section><section id="admin-view" hidden></section>
+    </main>
+  </div>
+  <dialog id="expense-dialog"><form id="expense-form"><div class="modal-head"><div><span class="label">MOVIMENTAÇÃO</span><h2 id="expense-dialog-title">Registrar despesa</h2></div><button type="button" data-close class="icon-button">×</button></div>
+    <label>Categoria<select name="category" required><option>Combustível</option><option>Pedágio</option><option>Alimentação</option><option>Manutenção</option><option>Hospedagem</option><option>Outros</option></select></label>
+    <label>Descrição<input name="description" required maxlength="60" placeholder="Ex.: Posto da Serra"></label><label>Valor (R$)<input name="amount" type="number" min="0.01" step="0.01" required></label><label>Data e hora<input name="occurredAt" type="datetime-local" required></label>
+    <fieldset class="receipt-field"><legend>Foto da nota fiscal <span class="optional">(até 5 MB)</span></legend><div class="receipt-actions"><button type="button" id="open-camera" class="primary">📷 Abrir câmera traseira</button><label class="secondary file-button">▧ Escolher da galeria<input name="receipt" type="file" accept="image/jpeg,image/png,image/webp"></label></div><input id="native-camera" type="file" accept="image/*" capture="environment" hidden><div id="receipt-preview" class="receipt-preview" hidden><img alt="Prévia da nota fiscal"><span></span></div></fieldset>
+    <div class="location-field"><label>Localização<input id="expense-location" value="Localização ainda não capturada" readonly></label><button type="button" id="capture-location" class="secondary">⌖ Usar localização atual</button><input name="latitude" type="hidden"><input name="longitude" type="hidden"><input name="locationAccuracy" type="hidden"><small id="location-help">O navegador solicitará permissão para acessar o GPS.</small></div>
+    <label>Observação<textarea name="notes" rows="2"></textarea></label>
+    <div class="form-actions"><button type="button" data-close class="secondary">Cancelar</button><button id="save-expense" class="primary">Salvar despesa</button></div></form></dialog>
+  <dialog id="receipt-dialog"><div class="receipt-modal"><button type="button" data-close-receipt class="icon-button">×</button><img id="receipt-image" alt="Comprovante da despesa"></div></dialog>
+  <dialog id="camera-dialog"><div class="camera-modal"><div class="modal-head"><div><span class="label">NOTA FISCAL</span><h2>Câmera traseira</h2></div><button type="button" id="close-camera" class="icon-button">×</button></div><div class="camera-frame"><video id="camera-video" autoplay playsinline muted></video></div><p id="camera-help">Posicione toda a nota fiscal dentro da imagem.</p><button type="button" id="take-photo" class="primary wide">● Tirar foto</button><canvas id="camera-canvas" hidden></canvas></div></dialog>
+  <script src="app.js"></script>
+</body></html>
