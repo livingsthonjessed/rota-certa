@@ -27,11 +27,13 @@ async function migrate(){
    ALTER TABLE expenses ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
   `);
   const company=(await client.query("SELECT id FROM companies WHERE cnpj='00000000000191'")).rows[0];
-  await client.query('UPDATE users SET company_id=$1 WHERE company_id IS NULL',[company.id]);
-  await client.query('UPDATE customers SET company_id=$1 WHERE company_id IS NULL',[company.id]);
-  await client.query('UPDATE vehicles SET company_id=$1 WHERE company_id IS NULL',[company.id]);
-  await client.query('UPDATE trips SET company_id=$1 WHERE company_id IS NULL',[company.id]);
-  await client.query('UPDATE expenses e SET company_id=t.company_id FROM trips t WHERE e.trip_id=t.id AND e.company_id IS NULL');
+  if(company){
+   await client.query('UPDATE users SET company_id=$1 WHERE company_id IS NULL',[company.id]);
+   await client.query('UPDATE customers SET company_id=$1 WHERE company_id IS NULL',[company.id]);
+   await client.query('UPDATE vehicles SET company_id=$1 WHERE company_id IS NULL',[company.id]);
+   await client.query('UPDATE trips SET company_id=$1 WHERE company_id IS NULL',[company.id]);
+   await client.query('UPDATE expenses e SET company_id=t.company_id FROM trips t WHERE e.trip_id=t.id AND e.company_id IS NULL');
+  }
   await client.query(`
    ALTER TABLE users ALTER COLUMN company_id SET NOT NULL;
    ALTER TABLE customers ALTER COLUMN company_id SET NOT NULL;
@@ -44,7 +46,7 @@ async function migrate(){
    CREATE INDEX IF NOT EXISTS idx_trips_company ON trips(company_id);
    CREATE INDEX IF NOT EXISTS idx_expenses_company ON expenses(company_id);
   `);
-  await client.query('COMMIT');console.log('Estrutura multiempresa criada e dados vinculados à André veículos.');
+  await client.query('COMMIT');console.log(company?'Estrutura multiempresa criada e dados existentes vinculados à André veículos.':'Estrutura multiempresa criada para o primeiro cadastro de empresa.');
  }catch(e){await client.query('ROLLBACK');throw e}finally{client.release();await pool.end()}
 }
 migrate().catch(e=>{console.error(e);process.exit(1)});
