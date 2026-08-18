@@ -18,7 +18,8 @@ async function migrate(){
    );
    INSERT INTO companies (name,cep,cnpj,responsible_email,responsible_name)
    SELECT 'André veículos','00000000','00000000000191','admin@rotacerta.com','Ana Administradora'
-   WHERE NOT EXISTS (SELECT 1 FROM companies WHERE cnpj='00000000000191');
+   WHERE EXISTS (SELECT 1 FROM users)
+     AND NOT EXISTS (SELECT 1 FROM companies WHERE cnpj='00000000000191');
    ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
    ALTER TABLE customers ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
    ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
