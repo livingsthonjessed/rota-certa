@@ -11,7 +11,8 @@ function verifyPassword(password,stored){const [salt,expected]=stored.split(':')
 const digits=value=>String(value||'').replace(/\D/g,'');
 function isValidCpf(value){const cpf=digits(value);if(cpf.length!==11||/^(\d)\1{10}$/.test(cpf))return false;for(let size=9;size<=10;size++){let sum=0;for(let i=0;i<size;i++)sum+=Number(cpf[i])*(size+1-i);const digit=(sum*10)%11%10;if(digit!==Number(cpf[size]))return false}return true}
 function isValidEmail(value){const email=String(value||'').trim();return email.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)}
-function isValidCnpj(value){const cnpj=digits(value);if(cnpj.length!==14||/^(\d)\1{13}$/.test(cnpj))return false;const calc=size=>{let sum=0,pos=size-7;for(let i=size;i>=1;i--){sum+=Number(cnpj[size-i])*pos--;if(pos<2)pos=9}const result=sum%11;return result<2?0:11-result};return calc(12)===Number(cnpj[12])&&calc(13)===Number(cnpj[13])}
+const normalizeCnpj=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function isValidCnpj(value){const cnpj=normalizeCnpj(value);if(!/^[A-Z0-9]{12}\d{2}$/.test(cnpj)||/^(.)\1{13}$/.test(cnpj))return false;const weights=[[5,4,3,2,9,8,7,6,5,4,3,2],[6,5,4,3,2,9,8,7,6,5,4,3,2]];const digit=size=>{const sum=weights[size-12].reduce((total,weight,index)=>total+(cnpj.charCodeAt(index)-48)*weight,0),remainder=sum%11;return remainder<2?0:11-remainder};return digit(12)===Number(cnpj[12])&&digit(13)===Number(cnpj[13])}
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'};
 function send(res,status,data,headers={}){const value=typeof data==='string'?data:JSON.stringify(data);res.writeHead(status,{'Content-Type':'application/json; charset=utf-8',...headers});res.end(value)}
 function readBody(req){return new Promise((resolve,reject)=>{let value='';req.on('data',chunk=>{value+=chunk;if(value.length>8_000_000){reject(new Error('Payload muito grande'));req.destroy()}});req.on('end',()=>{try{resolve(value?JSON.parse(value):{})}catch{reject(new Error('JSON inválido'))}});req.on('error',reject)})}
@@ -20,7 +21,7 @@ async function tripAccess(id,user){const result=user.role==='admin'?await pool.q
 
 async function api(req,res,url){
  if(req.method==='POST'&&url.pathname==='/api/companies'){
-  const d=await readBody(req),cnpj=digits(d.cnpj),cep=digits(d.cep);if(!d.name||!isValidCnpj(cnpj)||cep.length!==8||!isValidEmail(d.email)||!d.responsibleName||String(d.password||'').length<8)return send(res,400,{error:'Preencha os dados, informe CNPJ e e-mail válidos e senha com ao menos 8 caracteres.'});
+  const d=await readBody(req),cnpj=normalizeCnpj(d.cnpj),cep=digits(d.cep);if(!d.name||!isValidCnpj(cnpj)||cep.length!==8||!isValidEmail(d.email)||!d.responsibleName||String(d.password||'').length<8)return send(res,400,{error:'Preencha os dados, informe um CNPJ brasileiro válido com 14 caracteres, e-mail válido e senha com ao menos 8 caracteres.'});
   const client=await pool.connect();try{await client.query('BEGIN');const company=(await client.query('INSERT INTO companies (name,cep,cnpj,responsible_email,responsible_name) VALUES ($1,$2,$3,$4,$5) RETURNING id',[d.name.trim(),cep,cnpj,d.email.trim().toLowerCase(),d.responsibleName.trim()])).rows[0];await client.query("INSERT INTO users (name,email,password_hash,role,company_id) VALUES ($1,$2,$3,'admin',$4)",[d.responsibleName.trim(),d.email.trim().toLowerCase(),hashPassword(d.password),company.id]);await client.query('COMMIT');return send(res,201,{ok:true})}catch(e){await client.query('ROLLBACK');throw e}finally{client.release()}
  }
  if(req.method==='POST'&&url.pathname==='/api/login'){
