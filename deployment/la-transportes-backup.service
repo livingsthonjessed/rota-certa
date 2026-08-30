@@ -1,0 +1,8 @@
+[Unit]
+Description=Backup do PostgreSQL da LA Transportes
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/backup-la-transportes

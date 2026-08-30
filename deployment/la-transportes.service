@@ -1,0 +1,19 @@
+[Unit]
+Description=LA Transportes - Central do Motorista
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/la-transportes
+EnvironmentFile=/var/www/la-transportes/.env
+ExecStart=/usr/bin/node /var/www/la-transportes/server.js
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
