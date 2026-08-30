@@ -1,6 +1,6 @@
-# Rota Certa
+# LA Transportes e Central do Motorista
 
-MVP web responsivo para controle de despesas das viagens de uma transportadora.
+Site institucional da LA Transportes com a Central do Motorista, um MVP web responsivo para controle de despesas das viagens.
 
 ## Executar
 
@@ -10,7 +10,7 @@ O aplicativo agora depende do servidor para autenticação e banco de dados. Exe
 node server.js
 ```
 
-Depois acesse `http://localhost:8000`.
+Depois acesse `http://localhost:8000`. A Central do Motorista fica em `http://localhost:8000/motorista.html`.
 
 ## Usuários de demonstração
 
