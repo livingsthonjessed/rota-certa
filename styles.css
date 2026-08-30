@@ -66,6 +66,7 @@ textarea { resize:vertical; }
 .company-signup { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; margin-top:10px; padding:11px; border:0; color:var(--primary); background:transparent; font-weight:700; }
 .company-signup span { display:grid; place-items:center; width:24px; height:24px; border:1px solid #aac6e4; border-radius:50%; }
 .brand-mark { display:grid; place-items:center; width:48px; height:48px; border-radius:13px; margin-bottom:18px; color:white; background:var(--primary); font-weight:800; }
+.back-to-site { display:inline-block; margin-bottom:22px; color:var(--primary); font-size:13px; font-weight:700; text-decoration:none; }
 .wide { width:100%; margin-top:20px; }
 .error { color:#b42318 !important; min-height:18px; margin:10px 0 0 !important; font-size:13px; }
 .error.success { color:#247044 !important; }
