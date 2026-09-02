@@ -30,6 +30,7 @@ async function migrate() {
     );
 
     ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS fuel_consumption NUMERIC(10,2);
+    ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS axle_count INTEGER;
 
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS mileage NUMERIC(12,2);
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS freight_value NUMERIC(12,2);
