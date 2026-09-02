@@ -160,3 +160,21 @@ textarea { resize:vertical; }
   .record-side { width:100%; justify-content:space-between; text-align:left; }
   .receipt-actions { grid-template-columns:1fr; }
 }
+
+.freight-layout { display:grid; grid-template-columns:minmax(320px,440px) 1fr; gap:24px; align-items:start; }
+.freight-intro { margin:-8px 0 18px; color:var(--muted); line-height:1.5; }
+.freight-result { padding:24px; background:white; border:1px solid var(--line); border-radius:17px; }
+.freight-result-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:20px; }
+.freight-result-head h2 { margin-top:7px; font-size:21px; }
+.map-route-link { display:inline-flex; align-items:center; white-space:nowrap; text-decoration:none; }
+.freight-metrics { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px; }
+.freight-metrics article { display:grid; gap:4px; padding:15px; border-radius:11px; background:var(--paper); }
+.freight-metrics small,.freight-metrics span,.freight-costs span { color:var(--muted); font-size:12px; }
+.freight-costs { display:grid; gap:0; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+.freight-costs>div { display:flex; justify-content:space-between; gap:18px; padding:12px 14px; border-bottom:1px solid var(--line); }
+.freight-costs>div:last-child { border:0; }
+.freight-total { color:white; background:var(--primary); }
+.freight-total span { color:#d8e9fb; }
+.freight-total strong { font-size:18px; }
+@media (max-width:900px) { .freight-layout { grid-template-columns:1fr; } }
+@media (max-width:600px) { .freight-result-head { flex-direction:column; } .freight-metrics { grid-template-columns:1fr; } }

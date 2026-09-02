@@ -1,7 +1,7 @@
 require('dotenv').config();
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {Pool}=require('pg');
-const PORT=Number(process.env.PORT||8000),ROOT=__dirname;
+const PORT=Number(process.env.PORT||8000),ROOT=__dirname,GOOGLE_MAPS_API_KEY=process.env.GOOGLE_MAPS_API_KEY||'';
 const IS_PRODUCTION=process.env.NODE_ENV==='production';
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL não configurada no arquivo .env.');
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:10,idleTimeoutMillis:30000});
@@ -19,6 +19,13 @@ const securityHeaders={'X-Content-Type-Options':'nosniff','X-Frame-Options':'DEN
 function send(res,status,data,headers={}){const value=typeof data==='string'?data:JSON.stringify(data);res.writeHead(status,{...securityHeaders,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(value)}
 function readBody(req){return new Promise((resolve,reject)=>{let value='';req.on('data',chunk=>{value+=chunk;if(value.length>8_000_000){reject(new Error('Payload muito grande'));req.destroy()}});req.on('end',()=>{try{resolve(value?JSON.parse(value):{})}catch{reject(new Error('JSON inválido'))}});req.on('error',reject)})}
 async function auth(req){const token=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('session='))?.slice(8);if(!token)return null;const hash=crypto.createHash('sha256').update(token).digest('hex');const result=await pool.query(`SELECT u.id,u.name,u.email,u.role,u.company_id,c.name company_name FROM sessions s JOIN users u ON u.id=s.user_id JOIN companies c ON c.id=u.company_id WHERE s.token_hash=$1 AND s.expires_at>NOW()`,[hash]);return result.rows[0]||null}
+const round2=value=>Math.round((Number(value)+Number.EPSILON)*100)/100;
+function googleMoneyValue(money){return Number(money?.units||0)+Number(money?.nanos||0)/1e9}
+async function googleJson(url,options={}){
+ const response=await fetch(url,{...options,signal:AbortSignal.timeout(20000)}),data=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(data.error?.message||'A integração com o Google Maps não respondeu.');
+ return data;
+}
 async function tripAccess(id,user){const result=user.role==='admin'?await pool.query('SELECT id,code,origin,destination,vehicle,budget::float8 budget,driver_id,status,started_at,submitted_at,closed_at,review_notes,company_id FROM trips WHERE id=$1 AND company_id=$2',[id,user.company_id]):await pool.query('SELECT id,code,origin,destination,vehicle,budget::float8 budget,driver_id,status,started_at,submitted_at,closed_at,review_notes,company_id FROM trips WHERE id=$1 AND driver_id=$2 AND company_id=$3',[id,user.id,user.company_id]);return result.rows[0]}
 
 async function api(req,res,url){
@@ -43,8 +50,22 @@ async function api(req,res,url){
    const [drivers,customers,vehicles]=await Promise.all([
     pool.query("SELECT id,name FROM users WHERE role='driver' AND company_id=$1 ORDER BY name",[user.company_id]),
     pool.query('SELECT id,name,cnpj FROM customers WHERE company_id=$1 ORDER BY name',[user.company_id]),
-    pool.query('SELECT id,plate,model FROM vehicles WHERE company_id=$1 ORDER BY plate',[user.company_id])
+    pool.query('SELECT id,plate,model,fuel_consumption::float8 fuel_consumption FROM vehicles WHERE company_id=$1 ORDER BY plate',[user.company_id])
    ]);return send(res,200,{drivers:drivers.rows,customers:customers.rows,vehicles:vehicles.rows});
+  }
+  if(req.method==='POST'&&resource==='freight-quote'){
+   if(!GOOGLE_MAPS_API_KEY)return send(res,503,{error:'A chave do Google Maps ainda não foi configurada no servidor.'});
+   const d=await readBody(req),origin=String(d.origin||'').trim(),destination=String(d.destination||'').trim(),vehicleId=Number(d.vehicleId),fuelPrice=Number(d.fuelPrice),driverPayment=Number(d.driverPayment);
+   if(!origin||!destination||!vehicleId||!(fuelPrice>0)||!(driverPayment>=0))return send(res,400,{error:'Informe origem, destino, veículo, preço do combustível e pagamento do motorista.'});
+   const vehicleResult=await pool.query('SELECT id,plate,model,fuel_consumption::float8 fuel_consumption FROM vehicles WHERE id=$1 AND company_id=$2',[vehicleId,user.company_id]),vehicle=vehicleResult.rows[0];
+   if(!vehicle)return send(res,404,{error:'Veículo não encontrado.'});if(!(vehicle.fuel_consumption>0))return send(res,400,{error:'Cadastre o consumo de combustível do veículo antes de calcular o frete.'});
+   const routes=await googleJson('https://routes.googleapis.com/directions/v2:computeRoutes',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':GOOGLE_MAPS_API_KEY,'X-Goog-FieldMask':'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.travelAdvisory.tollInfo,routes.legs.travelAdvisory.tollInfo'},body:JSON.stringify({origin:{address:origin},destination:{address:destination},travelMode:'DRIVE',routingPreference:'TRAFFIC_AWARE',computeAlternativeRoutes:false,languageCode:'pt-BR',regionCode:'br',units:'METRIC',extraComputations:['TOLLS'],routeModifiers:{vehicleInfo:{emissionType:'DIESEL'}}})}),route=routes.routes?.[0];
+   if(!route)return send(res,404,{error:'O Google Maps não encontrou uma rota entre os pontos informados.'});
+   const routeTolls=route.travelAdvisory?.tollInfo?.estimatedPrice||[],legTolls=(route.legs||[]).flatMap(leg=>leg.travelAdvisory?.tollInfo?.estimatedPrice||[]),prices=routeTolls.length?routeTolls:legTolls,brl=prices.filter(x=>x.currencyCode==='BRL'),tollCost=round2((brl.length?brl:prices).reduce((sum,x)=>sum+googleMoneyValue(x),0)),hasTolls=Boolean(route.travelAdvisory?.tollInfo||(route.legs||[]).some(x=>x.travelAdvisory?.tollInfo)),tollEstimateAvailable=prices.length>0;
+   let elevationGainM=0,elevationLossM=0;const polyline=route.polyline?.encodedPolyline;
+   if(polyline){const params=new URLSearchParams({path:`enc:${polyline}`,samples:'128',key:GOOGLE_MAPS_API_KEY}),elevation=await googleJson(`https://maps.googleapis.com/maps/api/elevation/json?${params}`);if(elevation.status!=='OK')throw new Error(elevation.error_message||'Não foi possível consultar a elevação da rota.');for(let i=1;i<elevation.results.length;i++){const change=elevation.results[i].elevation-elevation.results[i-1].elevation;if(change>0)elevationGainM+=change;else elevationLossM+=Math.abs(change)}}
+   const distanceKm=route.distanceMeters/1000,durationMinutes=Number(String(route.duration||'0s').replace('s',''))/60,estimatedLiters=distanceKm/vehicle.fuel_consumption,fuelCost=estimatedLiters*fuelPrice,subtotal=fuelCost+tollCost+driverPayment,maintenanceCost=subtotal*.15,total=subtotal+maintenanceCost;
+   return send(res,200,{origin,destination,mapUrl:`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`,vehicle:{id:vehicle.id,plate:vehicle.plate,model:vehicle.model,fuelConsumption:vehicle.fuel_consumption},route:{distanceKm:round2(distanceKm),durationMinutes:round2(durationMinutes),elevationGainM:round2(elevationGainM),elevationLossM:round2(elevationLossM),hasTolls,tollCost,tollEstimateAvailable},costs:{estimatedLiters:round2(estimatedLiters),fuelPrice:round2(fuelPrice),fuelCost:round2(fuelCost),tollCost,driverPayment:round2(driverPayment),subtotal:round2(subtotal),maintenanceRate:.15,maintenanceCost:round2(maintenanceCost),total:round2(total)}});
   }
   if(req.method==='GET'&&resource==='users'){const result=await pool.query("SELECT id,name,email,cpf,role,(photo_data IS NOT NULL) has_photo FROM users WHERE company_id=$1 ORDER BY name",[user.company_id]);return send(res,200,{items:result.rows})}
   if(req.method==='GET'&&resource==='customers'){const result=await pool.query('SELECT * FROM customers WHERE company_id=$1 ORDER BY name',[user.company_id]);return send(res,200,{items:result.rows})}

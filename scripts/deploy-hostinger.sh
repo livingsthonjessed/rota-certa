@@ -27,7 +27,11 @@ if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NA
   sudo -u postgres createdb --owner="$APP_USER" "$DB_NAME"
 fi
 
-printf 'DATABASE_URL=postgresql:///%s?host=/var/run/postgresql\nPORT=8000\nNODE_ENV=production\n' "$DB_NAME" > "$APP_DIR/.env"
+if [[ ! -f "$APP_DIR/.env" ]]; then
+  printf 'DATABASE_URL=postgresql:///%s?host=/var/run/postgresql\nPORT=8000\nNODE_ENV=production\nGOOGLE_MAPS_API_KEY=\n' "$DB_NAME" > "$APP_DIR/.env"
+elif ! grep -q '^GOOGLE_MAPS_API_KEY=' "$APP_DIR/.env"; then
+  printf 'GOOGLE_MAPS_API_KEY=\n' >> "$APP_DIR/.env"
+fi
 chown "$APP_USER:$APP_USER" "$APP_DIR/.env"
 chmod 600 "$APP_DIR/.env"
 
