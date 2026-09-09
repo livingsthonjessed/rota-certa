@@ -262,3 +262,13 @@ textarea { resize:vertical; }
  .purchase-dialog form { padding:18px; }
  .allocation-form { padding:14px; }
 }
+
+
+/* Grupos expansíveis do menu */
+.admin-nav .nav-group-toggle { justify-content:space-between; margin-top:17px; padding:9px 11px; color:#9fc0e1; background:transparent; border-radius:8px; letter-spacing:.13em; text-transform:uppercase; }
+.admin-nav .nav-group-toggle:first-child { margin-top:12px; }
+.admin-nav .nav-group-toggle:hover { color:white; background:#ffffff0b; }
+.admin-nav .nav-group-toggle b { font-size:10px; font-weight:700; }
+.admin-nav .nav-group-toggle span { width:auto; font-size:17px; transition:transform .2s ease; }
+.admin-nav .nav-group-toggle[aria-expanded="false"] span { transform:rotate(-90deg); }
+.nav-group-items { display:grid; gap:5px; }

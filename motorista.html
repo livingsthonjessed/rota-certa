@@ -15,17 +15,21 @@
   <div id="app-view" hidden>
     <aside id="sidebar" class="sidebar" aria-label="Menu do sistema">
       <div class="sidebar-head"><div><span class="sidebar-brand">LA</span><div><strong>LA Transportes</strong><small>Sistema de gestão</small></div></div><button id="menu-close" class="menu-close" type="button" aria-label="Fechar menu">×</button></div>
-      <span class="nav-group-title">Gestão de rotas</span>
-      <nav id="admin-nav" class="admin-nav" aria-label="Gestão de rotas">
-        <button data-admin="reviews" class="active"><span aria-hidden="true">✓</span><b data-driver-label="Minhas viagens">Validações</b></button>
-        <button data-admin="users" data-admin-only><span aria-hidden="true">♙</span><b>Usuários</b></button>
-        <button data-admin="vehicles" data-admin-only><span aria-hidden="true">▣</span><b>Veículos</b></button>
-        <button data-admin="trips" data-admin-only><span aria-hidden="true">↗</span><b>Viagens</b></button>
-        <button data-admin="customers" data-admin-only><span aria-hidden="true">◇</span><b>Clientes</b></button>
-        <button data-admin="freight" data-admin-only><span aria-hidden="true">≋</span><b>Frete</b></button>
-        <button data-admin="freight-history" data-admin-only><span aria-hidden="true">◷</span><b>Histórico frete</b></button>
-        <span class="nav-group-title nav-group-inside" data-admin-only>Gestão de compras</span>
-        <button data-admin="purchase-invoices" data-admin-only><span aria-hidden="true">▤</span><b>Agregador de notas</b></button>
+      <nav id="admin-nav" class="admin-nav" aria-label="Módulos do sistema">
+        <button class="nav-group-toggle" type="button" data-nav-group="routes" aria-expanded="true" aria-controls="nav-group-routes"><b>Gestão de rotas</b><span aria-hidden="true">⌄</span></button>
+        <div id="nav-group-routes" class="nav-group-items">
+          <button data-admin="reviews" class="active"><span aria-hidden="true">✓</span><b data-driver-label="Minhas viagens">Validações</b></button>
+          <button data-admin="users" data-admin-only><span aria-hidden="true">♙</span><b>Usuários</b></button>
+          <button data-admin="vehicles" data-admin-only><span aria-hidden="true">▣</span><b>Veículos</b></button>
+          <button data-admin="trips" data-admin-only><span aria-hidden="true">↗</span><b>Viagens</b></button>
+          <button data-admin="customers" data-admin-only><span aria-hidden="true">◇</span><b>Clientes</b></button>
+          <button data-admin="freight" data-admin-only><span aria-hidden="true">≋</span><b>Frete</b></button>
+          <button data-admin="freight-history" data-admin-only><span aria-hidden="true">◷</span><b>Histórico frete</b></button>
+        </div>
+        <button class="nav-group-toggle" type="button" data-nav-group="purchases" aria-expanded="true" aria-controls="nav-group-purchases" data-admin-only><b>Gestão de compras</b><span aria-hidden="true">⌄</span></button>
+        <div id="nav-group-purchases" class="nav-group-items" data-admin-only>
+          <button data-admin="purchase-invoices"><span aria-hidden="true">▤</span><b>Agregador de notas</b></button>
+        </div>
       </nav>
     </aside>
     <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Fechar menu" tabindex="-1"></button>

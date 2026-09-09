@@ -22,6 +22,15 @@ async function migrate(){
      AND NOT EXISTS (SELECT 1 FROM companies WHERE cnpj='00000000000191');
    ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
    ALTER TABLE customers ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
+   ALTER TABLE customers ADD COLUMN IF NOT EXISTS fleet TEXT;
+   ALTER TABLE customers ADD COLUMN IF NOT EXISTS contact TEXT;
+   ALTER TABLE customers ALTER COLUMN cnpj DROP NOT NULL;
+   ALTER TABLE customers ALTER COLUMN cep DROP NOT NULL;
+   ALTER TABLE customers ALTER COLUMN address_number DROP NOT NULL;
+   ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL;
+   ALTER TABLE customers ALTER COLUMN contact_name DROP NOT NULL;
+   ALTER TABLE customers DROP CONSTRAINT IF EXISTS customers_cnpj_key;
+   UPDATE customers SET contact=COALESCE(contact,NULLIF(contact_name,''),NULLIF(phone,'')) WHERE contact IS NULL;
    ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
    ALTER TABLE trips ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
    ALTER TABLE expenses ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id);
@@ -42,6 +51,7 @@ async function migrate(){
    ALTER TABLE expenses ALTER COLUMN company_id SET NOT NULL;
    CREATE INDEX IF NOT EXISTS idx_users_company ON users(company_id);
    CREATE INDEX IF NOT EXISTS idx_customers_company ON customers(company_id);
+   CREATE UNIQUE INDEX IF NOT EXISTS customers_company_cnpj_unique ON customers(company_id,cnpj) WHERE cnpj IS NOT NULL;
    CREATE INDEX IF NOT EXISTS idx_vehicles_company ON vehicles(company_id);
    CREATE INDEX IF NOT EXISTS idx_trips_company ON trips(company_id);
    CREATE INDEX IF NOT EXISTS idx_expenses_company ON expenses(company_id);
