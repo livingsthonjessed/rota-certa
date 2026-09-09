@@ -220,3 +220,45 @@ textarea { resize:vertical; }
   .workspace-main { padding:24px 16px; }
   .user-identity { display:none; }
 }
+
+
+/* Gestão de compras */
+.admin-nav .nav-group-inside { margin:19px 12px 5px; padding-top:18px; border-top:1px solid #ffffff1f; }
+.purchase-upload { margin-bottom:24px; }
+.camera-capture { display:grid; justify-items:center; gap:8px; width:100%; padding:30px 20px; color:var(--primary); background:white; border:2px dashed #9bbada; border-radius:18px; }
+.camera-capture:hover { background:#f7fbff; border-color:var(--primary); }
+.camera-capture span { display:grid; place-items:center; width:72px; height:72px; color:white; background:var(--primary); border-radius:50%; font-size:34px; box-shadow:0 12px 28px #0b4f9c35; }
+.camera-capture strong { font:800 18px 'Manrope'; }
+.camera-capture small { color:var(--muted); }
+.purchase-records { padding:24px; }
+.purchase-records>.section-head>span { color:var(--muted); font-size:13px; }
+.purchase-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:15px; }
+.purchase-card { overflow:hidden; background:white; border:1px solid var(--line); border-radius:15px; }
+.invoice-photo { display:block; width:100%; height:180px; padding:0; background:#dbe7f2; border:0; }
+.invoice-photo img { width:100%; height:100%; object-fit:cover; }
+.purchase-card-body { display:grid; gap:6px; padding:15px; }
+.purchase-card-body>strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.purchase-card-body p { margin:0; color:var(--muted); font-size:12px; }
+.purchase-card-body>div { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px; }
+.purchase-card-body>div>span { font-weight:700; }
+.invoice-status { padding:7px 11px; border:0; border-radius:99px; font-size:12px; font-weight:800; }
+.invoice-status.pending { color:#704b00; background:#ffd75e; }
+.invoice-status.completed { color:#17653b; background:#ccebd9; }
+.purchase-dialog { width:min(760px,calc(100% - 24px)); }
+.allocation-form { margin-top:20px; padding:18px; background:var(--paper); border:1px solid var(--line); border-radius:13px; }
+.allocation-form label:first-child,.allocation-form label:nth-child(2) { margin-top:0; }
+.allocation-preview { margin-top:22px; }
+.allocation-preview .section-head { align-items:center; }
+.allocation-preview .section-head>strong { color:var(--primary); font-size:18px; }
+.allocation-row { background:white; }
+.delete-allocation { padding:6px 9px; color:var(--danger); background:#fff2ef; border:0; border-radius:7px; font-size:12px; font-weight:700; }
+
+@media (max-width:600px) {
+ .camera-capture { padding:24px 14px; }
+ .camera-capture span { width:64px; height:64px; font-size:30px; }
+ .purchase-records { padding:17px; }
+ .purchase-grid { grid-template-columns:1fr; }
+ .invoice-photo { height:210px; }
+ .purchase-dialog form { padding:18px; }
+ .allocation-form { padding:14px; }
+}

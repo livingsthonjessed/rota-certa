@@ -24,6 +24,8 @@
         <button data-admin="customers" data-admin-only><span aria-hidden="true">◇</span><b>Clientes</b></button>
         <button data-admin="freight" data-admin-only><span aria-hidden="true">≋</span><b>Frete</b></button>
         <button data-admin="freight-history" data-admin-only><span aria-hidden="true">◷</span><b>Histórico frete</b></button>
+        <span class="nav-group-title nav-group-inside" data-admin-only>Gestão de compras</span>
+        <button data-admin="purchase-invoices" data-admin-only><span aria-hidden="true">▤</span><b>Agregador de notas</b></button>
       </nav>
     </aside>
     <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Fechar menu" tabindex="-1"></button>
@@ -43,5 +45,13 @@
     <div class="form-actions"><button type="button" data-close class="secondary">Cancelar</button><button id="save-expense" class="primary">Salvar despesa</button></div></form></dialog>
   <dialog id="receipt-dialog"><div class="receipt-modal"><button type="button" data-close-receipt class="icon-button">×</button><img id="receipt-image" alt="Comprovante da despesa"></div></dialog>
   <dialog id="camera-dialog"><div class="camera-modal"><div class="modal-head"><div><span class="label">NOTA FISCAL</span><h2>Câmera traseira</h2></div><button type="button" id="close-camera" class="icon-button">×</button></div><div class="camera-frame"><video id="camera-video" autoplay playsinline muted></video></div><p id="camera-help">Posicione toda a nota fiscal dentro da imagem.</p><button type="button" id="take-photo" class="primary wide">● Tirar foto</button><canvas id="camera-canvas" hidden></canvas></div></dialog>
+  <input id="purchase-camera-input" type="file" accept="image/*" capture="environment" hidden>
+  <dialog id="purchase-justify-dialog" class="purchase-dialog"><form id="purchase-justify-form">
+    <div class="modal-head"><div><span class="label">GESTÃO DE COMPRAS</span><h2>Justificar nota fiscal</h2></div><button type="button" id="close-purchase-justify" class="icon-button" aria-label="Fechar">×</button></div>
+    <label>Fornecedor<input name="supplier" required maxlength="120" placeholder="Nome do fornecedor"></label>
+    <div class="allocation-form"><div class="form-grid"><label>Cliente<select name="customerId"><option value="">Selecione</option></select></label><label>Material<input name="material" maxlength="120" placeholder="Material ou serviço"></label><label>Valor (R$)<input name="amount" type="number" min="0.01" step="0.01"></label><label>Data da nota<input name="noteDate" type="date"></label></div><button type="button" id="confirm-allocation" class="primary wide">Confirmar</button></div>
+    <section class="allocation-preview"><div class="section-head"><div><span class="label">RATEIO DA NOTA</span><h2>Clientes relacionados</h2></div><strong id="allocation-total">R$ 0,00</strong></div><div id="allocation-list" class="record-list"><div class="empty">Nenhum cliente relacionado.</div></div></section>
+    <p id="purchase-justify-error" class="error"></p><div class="form-actions"><button type="button" id="cancel-purchase-justify" class="secondary">Cancelar</button><button id="save-purchase-justify" class="primary">Salvar</button></div>
+  </form></dialog>
   <script src="app.js"></script>
 </body></html>
