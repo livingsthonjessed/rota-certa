@@ -1,8 +1,8 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b4f9c"><title>Central do Motorista | LA Transportes</title><link rel="stylesheet" href="styles.css"></head>
+<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b4f9c"><title>Sistema de Gestão | LA Transportes</title><link rel="stylesheet" href="styles.css"></head>
 <body>
   <section id="login-view" class="login-view">
     <form id="login-form" class="login-card">
-      <a class="back-to-site" href="index.html">← Voltar para LA Transportes</a><span class="brand-mark">LA</span><span class="label">GESTÃO DE FROTA</span><h1>Central do Motorista</h1><p>Acesse suas viagens e registre as despesas com segurança.</p>
+      <a class="back-to-site" href="index.html">← Voltar para LA Transportes</a><span class="brand-mark">LA</span><span class="label">GESTÃO DE TRANSPORTES</span><h1>Sistema de Gestão</h1><p>Acesse as rotas e os controles operacionais da sua empresa.</p>
       <label>E-mail<input name="email" type="email" value="motorista@rotacerta.com" required></label>
       <label>Senha<input name="password" type="password" value="Motorista123" required></label>
       <p id="login-error" class="error"></p><button class="primary wide">Entrar</button><button type="button" id="open-company" class="company-signup"><span>＋</span> Cadastrar nova empresa</button>
@@ -13,13 +13,26 @@
     <label>Nome da empresa<input name="name" required></label><label>CEP<input name="cep" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" required placeholder="Somente números"></label><label>CNPJ<input name="cnpj" inputmode="text" maxlength="14" minlength="14" pattern="[A-Za-z0-9]{12}[0-9]{2}" autocapitalize="characters" spellcheck="false" required placeholder="14 caracteres"><small class="field-hint">Aceita CNPJ numérico ou alfanumérico; os 2 últimos caracteres são números.</small></label><label>E-mail responsável<input name="email" type="email" maxlength="254" required></label><label>Nome responsável<input name="responsibleName" required></label><label>Senha<input name="password" type="password" minlength="8" required></label>
   </div><p id="company-error" class="error"></p><div class="form-actions"><button type="button" id="cancel-company" class="secondary">Cancelar</button><button class="primary">Criar empresa e administrador</button></div></form></dialog>
   <div id="app-view" hidden>
-    <header class="topbar"><div><span class="eyebrow">LA TRANSPORTES</span><h1>Central do Motorista</h1></div><div class="user-area"><div class="user-identity"><span id="user-name"></span><small id="company-name"></small></div><button id="logout" class="avatar" title="Sair">↪</button></div></header>
-    <main><section class="welcome"><div><p id="welcome-copy"></p><h2 id="page-title">Suas viagens</h2></div><span id="role-badge" class="status"></span></section>
-      <nav id="admin-nav" class="admin-nav" hidden aria-label="Cadastros administrativos">
-        <button data-admin="reviews" class="active">Validações</button><button data-admin="users">Usuários</button><button data-admin="vehicles">Veículos</button><button data-admin="trips">Viagens</button><button data-admin="customers">Clientes</button><button data-admin="freight">Frete</button><button data-admin="freight-history">Histórico frete</button>
+    <aside id="sidebar" class="sidebar" aria-label="Menu do sistema">
+      <div class="sidebar-head"><div><span class="sidebar-brand">LA</span><div><strong>LA Transportes</strong><small>Sistema de gestão</small></div></div><button id="menu-close" class="menu-close" type="button" aria-label="Fechar menu">×</button></div>
+      <span class="nav-group-title">Gestão de rotas</span>
+      <nav id="admin-nav" class="admin-nav" aria-label="Gestão de rotas">
+        <button data-admin="reviews" class="active"><span aria-hidden="true">✓</span><b data-driver-label="Minhas viagens">Validações</b></button>
+        <button data-admin="users" data-admin-only><span aria-hidden="true">♙</span><b>Usuários</b></button>
+        <button data-admin="vehicles" data-admin-only><span aria-hidden="true">▣</span><b>Veículos</b></button>
+        <button data-admin="trips" data-admin-only><span aria-hidden="true">↗</span><b>Viagens</b></button>
+        <button data-admin="customers" data-admin-only><span aria-hidden="true">◇</span><b>Clientes</b></button>
+        <button data-admin="freight" data-admin-only><span aria-hidden="true">≋</span><b>Frete</b></button>
+        <button data-admin="freight-history" data-admin-only><span aria-hidden="true">◷</span><b>Histórico frete</b></button>
       </nav>
-      <div id="notice"></div><section id="trip-list" class="trip-grid"></section><section id="trip-detail" hidden></section><section id="admin-view" hidden></section>
-    </main>
+    </aside>
+    <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Fechar menu" tabindex="-1"></button>
+    <div class="app-content">
+      <header class="topbar"><div class="topbar-title"><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><span></span><span></span><span></span></button><div><span class="eyebrow">LA TRANSPORTES</span><h1>Sistema de Gestão</h1></div></div><div class="user-area"><div class="user-identity"><span id="user-name"></span><small id="company-name"></small></div><button id="logout" class="avatar" title="Sair">↪</button></div></header>
+      <main class="workspace-main"><section class="welcome"><div><p id="welcome-copy"></p><h2 id="page-title">Suas viagens</h2></div><span id="role-badge" class="status"></span></section>
+        <div id="notice"></div><section id="trip-list" class="trip-grid"></section><section id="trip-detail" hidden></section><section id="admin-view" hidden></section>
+      </main>
+    </div>
   </div>
   <dialog id="expense-dialog"><form id="expense-form"><div class="modal-head"><div><span class="label">MOVIMENTAÇÃO</span><h2 id="expense-dialog-title">Registrar despesa</h2></div><button type="button" data-close class="icon-button">×</button></div>
     <label>Categoria<select name="category" required><option>Combustível</option><option>Pedágio</option><option>Alimentação</option><option>Manutenção</option><option>Hospedagem</option><option>Outros</option></select></label>

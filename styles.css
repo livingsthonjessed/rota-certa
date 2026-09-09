@@ -178,3 +178,45 @@ textarea { resize:vertical; }
 .freight-total strong { font-size:18px; }
 @media (max-width:900px) { .freight-layout { grid-template-columns:1fr; } }
 @media (max-width:600px) { .freight-result-head { flex-direction:column; } .freight-metrics { grid-template-columns:1fr; } }
+
+
+/* Estrutura principal do sistema de gestão */
+#app-view { min-height:100vh; }
+.app-content { min-height:100vh; margin-left:264px; transition:margin-left .25s ease; }
+.topbar { position:sticky; top:0; z-index:20; height:82px; padding:0 30px; box-shadow:0 1px 0 #ffffff20; }
+.topbar-title { display:flex; align-items:center; gap:14px; }
+.workspace-main { max-width:1120px; margin:auto; padding:34px 24px; }
+.sidebar { position:fixed; inset:0 auto 0 0; z-index:40; width:264px; padding:22px 16px; color:white; background:linear-gradient(180deg,#073f7c 0%,#062f5e 100%); box-shadow:10px 0 30px #071a3520; }
+.sidebar-head,.sidebar-head>div { display:flex; align-items:center; }
+.sidebar-head { justify-content:space-between; gap:12px; padding:0 6px 25px; border-bottom:1px solid #ffffff1f; }
+.sidebar-head>div { gap:11px; min-width:0; }
+.sidebar-head strong,.sidebar-head small { display:block; }
+.sidebar-head strong { font:700 14px 'Manrope'; white-space:nowrap; }
+.sidebar-head small { margin-top:2px; color:#bfd5ed; font-size:11px; }
+.sidebar-brand { display:grid; place-items:center; flex:0 0 auto; width:40px; height:40px; border-radius:11px; color:var(--primary); background:white; font:800 14px 'Manrope'; }
+.nav-group-title { display:block; margin:25px 12px 8px; color:#9fc0e1; font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+.admin-nav { display:grid; gap:5px; margin:0; padding:0; overflow:visible; background:transparent; border:0; border-radius:0; }
+.admin-nav button { display:flex; align-items:center; gap:11px; width:100%; min-width:0; padding:11px 12px; color:#d5e5f5; text-align:left; background:transparent; border:0; border-radius:10px; font-weight:600; }
+.admin-nav button span { display:grid; place-items:center; flex:0 0 auto; width:22px; font-size:17px; }
+.admin-nav button b { font:600 14px 'DM Sans'; }
+.admin-nav button:hover { color:white; background:#ffffff12; }
+.admin-nav button.active { color:#073f7c; background:white; box-shadow:0 8px 20px #001b3745; }
+.menu-toggle,.menu-close { display:none; }
+.sidebar-backdrop { display:none; }
+
+@media (max-width:800px) {
+  body { padding-bottom:80px; }
+  .app-content { margin-left:0; }
+  .topbar { height:72px; padding:0 16px; }
+  .topbar h1 { font-size:19px; }
+  .topbar-title { gap:10px; }
+  .menu-toggle { display:grid; place-content:center; gap:4px; width:42px; height:42px; padding:0; color:white; background:#ffffff12; border:1px solid #ffffff35; border-radius:10px; }
+  .menu-toggle span { display:block; width:20px; height:2px; border-radius:2px; background:currentColor; }
+  .menu-close { display:grid; place-items:center; flex:0 0 auto; width:34px; height:34px; padding:0; color:white; background:#ffffff12; border:0; border-radius:9px; font-size:24px; }
+  .sidebar { width:min(290px,84vw); transform:translateX(-105%); transition:transform .25s ease; box-shadow:18px 0 45px #03162f70; }
+  .sidebar.open { transform:translateX(0); }
+  .sidebar-backdrop { position:fixed; inset:0; z-index:35; width:100%; height:100%; padding:0; background:#071a3599; border:0; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+  .sidebar-backdrop.open { display:block; opacity:1; pointer-events:auto; }
+  .workspace-main { padding:24px 16px; }
+  .user-identity { display:none; }
+}
