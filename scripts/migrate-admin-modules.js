@@ -35,6 +35,8 @@ async function migrate() {
 
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS mileage NUMERIC(12,2);
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS freight_value NUMERIC(12,2);
+    ALTER TABLE trips ADD COLUMN IF NOT EXISTS start_date DATE;
+    ALTER TABLE trips ADD COLUMN IF NOT EXISTS end_date DATE;
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS customer_id INTEGER REFERENCES customers(id);
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id);
     CREATE INDEX IF NOT EXISTS idx_trips_customer ON trips(customer_id);

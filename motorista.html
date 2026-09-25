@@ -57,5 +57,12 @@
     <section class="allocation-preview"><div class="section-head"><div><span class="label">RATEIO DA NOTA</span><h2>Clientes relacionados</h2></div><strong id="allocation-total">R$ 0,00</strong></div><div id="allocation-list" class="record-list"><div class="empty">Nenhum cliente relacionado.</div></div></section>
     <p id="purchase-justify-error" class="error"></p><div class="form-actions"><button type="button" id="cancel-purchase-justify" class="secondary">Cancelar</button><button id="save-purchase-justify" class="primary">Salvar</button></div>
   </form></dialog>
+  <dialog id="trip-documents-dialog" class="purchase-dialog"><form id="trip-document-form">
+    <div class="modal-head"><div><span class="label">DOCUMENTOS DA VIAGEM</span><h2 id="trip-documents-title">Anexar documento</h2></div><button type="button" id="close-trip-documents" class="icon-button" aria-label="Fechar">×</button></div>
+    <div class="form-grid"><label>Tipo do documento<select name="documentType" required><option value="">Selecione</option><option>CTE</option><option>Abastecimento</option><option>Outros gastos</option></select></label><label>Arquivo <span class="optional">(PDF ou imagem, até 5 MB)</span><input name="documentFile" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" required></label></div>
+    <label>Descrição<input name="description" maxlength="180" required placeholder="Descreva o documento anexado"></label>
+    <p id="trip-document-error" class="error"></p><div class="form-actions"><button type="button" id="cancel-trip-documents" class="secondary">Cancelar</button><button id="save-trip-document" class="primary">Confirmar</button></div>
+    <section class="allocation-preview"><div class="section-head"><div><span class="label">DOCUMENTOS ANEXADOS</span><h2>Registros da viagem</h2></div></div><div id="trip-document-list" class="record-list"><div class="empty">Nenhum documento anexado.</div></div></section>
+  </form></dialog>
   <script src="app.js"></script>
 </body></html>
