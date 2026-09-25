@@ -56,6 +56,9 @@ form { padding:25px; }
 .icon-button { border:0; background:#eee; border-radius:50%; width:34px; height:34px; font-size:22px; }
 label { display:block; font-size:13px; font-weight:700; margin-top:14px; }
 input,select,textarea { width:100%; margin-top:6px; padding:12px; border:1px solid #cfcfc8; border-radius:9px; background:white; }
+.currency-input { display:flex; align-items:center; margin-top:6px; border:1px solid #cfcfc8; border-radius:9px; background:white; overflow:hidden; }
+.currency-input span { padding:0 0 0 12px; color:var(--muted); font-weight:700; }
+.currency-input input { margin:0; border:0; box-shadow:none; }
 textarea { resize:vertical; }
 .form-actions { justify-content:flex-end; margin-top:24px; }
 .login-view { min-height:100vh; display:grid; place-items:center; padding:24px; background:linear-gradient(145deg,#07376f,#0b61b8); }
@@ -127,8 +130,10 @@ textarea { resize:vertical; }
 .record p { margin:4px 0 0; color:var(--muted); font-size:13px; }
 .record > span { color:var(--muted); text-align:right; font-size:13px; }
 .record-side { display:flex; align-items:center; justify-content:flex-end; gap:10px; color:var(--muted); text-align:right; font-size:13px; }
-.document-button { display:grid; place-items:center; width:38px; height:38px; padding:0; border:0; border-radius:10px; background:var(--accent); color:var(--primary); font-size:21px; cursor:pointer; }
-.document-button:hover { background:#d8e9fb; }
+.record-actions { display:flex; gap:7px; }
+.record-icon-button { display:grid; place-items:center; width:38px; height:38px; padding:0; border:0; border-radius:10px; background:var(--accent); color:var(--primary); cursor:pointer; }
+.record-icon-button svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.record-icon-button:hover { background:#d8e9fb; }
 .document-row small { color:var(--muted); overflow-wrap:anywhere; }
 #admin-cancel-edit { margin-top:8px; }
 @media (max-width:600px) {
