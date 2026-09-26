@@ -1,6 +1,7 @@
 require('dotenv').config();
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {Pool}=require('pg');
+const {renderTripSummary}=require('./trip-summary');
 const PORT=Number(process.env.PORT||8000),ROOT=__dirname,GOOGLE_MAPS_API_KEY=process.env.GOOGLE_MAPS_API_KEY||'';
 const IS_PRODUCTION=process.env.NODE_ENV==='production';
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL não configurada no arquivo .env.');
@@ -48,6 +49,13 @@ async function api(req,res,url){
  if(url.pathname.startsWith('/api/admin/')){
   if(user.role!=='admin')return send(res,403,{error:'Acesso exclusivo para administradores.'});
   const resource=url.pathname.slice('/api/admin/'.length);
+  const tripSummary=resource.match(/^trips\/(\d+)\/summary$/);
+  if(req.method==='GET'&&tripSummary){
+   const result=await pool.query(`SELECT t.code,t.origin,t.destination,t.start_date::text start_date,t.end_date::text end_date,t.mileage,t.freight_value,t.vehicle,c.name customer_name,u.name driver_name,v.plate,v.model FROM trips t LEFT JOIN customers c ON c.id=t.customer_id AND c.company_id=t.company_id LEFT JOIN users u ON u.id=t.driver_id AND u.company_id=t.company_id LEFT JOIN vehicles v ON v.id=t.vehicle_id AND v.company_id=t.company_id WHERE t.id=$1 AND t.company_id=$2`,[Number(tripSummary[1]),user.company_id]);
+   if(!result.rowCount)return send(res,404,{error:'Viagem não encontrada.'});
+   const documents=await pool.query('SELECT document_type,amount,km,description,SUM(amount) OVER () total_amount FROM trip_documents WHERE trip_id=$1 AND company_id=$2 ORDER BY created_at,id',[Number(tripSummary[1]),user.company_id]);
+   return send(res,200,renderTripSummary(result.rows[0],documents.rows,user.company_name),{'Content-Type':'text/html; charset=utf-8'});
+  }
   if(req.method==='GET'&&resource==='options'){
    const [drivers,customers,vehicles]=await Promise.all([
     pool.query("SELECT id,name FROM users WHERE role='driver' AND company_id=$1 ORDER BY name",[user.company_id]),

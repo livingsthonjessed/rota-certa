@@ -1,0 +1,25 @@
+:root { color-scheme:light; font-family:Arial,sans-serif; color:#12233f; background:#f4f8fc; }
+* { box-sizing:border-box; }
+body { margin:0; padding:32px 18px; }
+main { max-width:1000px; margin:auto; padding:36px; background:#fff; border:1px solid #d8e2ee; border-radius:12px; }
+header { border-bottom:3px solid #0b4f9c; padding-bottom:18px; }
+.company { color:#0b4f9c; font-weight:bold; margin:0 0 10px; overflow-wrap:anywhere; }
+h1 { font-size:26px; margin:0; }
+.code { margin:8px 0 0; color:#66758a; }
+.trip-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px 24px; margin:26px 0 32px; }
+.trip-fields div { break-inside:avoid; }
+dt { font-size:12px; color:#66758a; margin-bottom:6px; }
+dd { margin:0; font-size:14px; font-weight:bold; overflow-wrap:anywhere; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+caption { text-align:left; font-size:18px; font-weight:bold; margin-bottom:14px; }
+th,td { padding:12px 10px; text-align:left; border-bottom:1px solid #d8e2ee; vertical-align:top; }
+thead { background:#e8f2ff; color:#0b4f9c; }
+td:first-child { width:20%; }
+.numeric { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.description { white-space:pre-wrap; overflow-wrap:anywhere; }
+tfoot { font-weight:bold; background:#e8f2ff; }
+.empty { text-align:center; color:#66758a; padding:24px; }
+.footnote { color:#66758a; font-size:11px; margin:16px 0 0; }
+@media(max-width:600px) { body { padding:12px 8px; } main { padding:18px 12px; } .trip-fields { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; } th,td { padding:10px 5px; font-size:11px; } }
+@page { size:A4; margin:15mm; }
+@media print { :root { background:white; } body { padding:0; } main { max-width:none; padding:0; border:0; border-radius:0; } thead { display:table-header-group; } tfoot { display:table-row-group; } tr { break-inside:avoid; } }
