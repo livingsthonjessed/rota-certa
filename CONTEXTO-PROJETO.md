@@ -153,6 +153,18 @@ Esta alteração foi implementada após `d33d0bb` e integra a entrega “Comiss�
 
 ## 8. Git e estado da entrega
 
+### Layout gerencial de viagens (entrega posterior a `3419cdc`)
+
+A partir de 1280 px de largura do viewport, o cadastro de viagens usa tabela com Origem, Destino, Data início, Data fim, Quilometragem, Valor do frete, Comissão motorista, Cliente, Motorista, Veículo e Ações. O navegador não determina com precisão as polegadas físicas do monitor; o breakpoint foi adotado como aproximação para a solicitação de monitores a partir de 14 polegadas.
+
+O botão **Adicionar** e a ação **Editar** abrem um `<dialog>` com o formulário existente. Há Cancelar, fechar e Esc, foco inicial no primeiro campo e erros dentro do diálogo. A tabela tem busca textual sem distinção de acentos, contagem de resultados, rolagem, cabeçalho fixo e ações fixas à direita (Editar, Resumo e Documento). Valores numéricos ficam alinhados à direita.
+
+Abaixo de 1280 px, mantém formulário e cartões existentes. O mesmo formulário é movido ao alternar os layouts para preservar os dados; ao ampliar a tela com dados preenchidos, abre o diálogo. A API e as regras de negócio não mudaram. Não há migração de banco nesta entrega.
+
+Validação específica: `node scripts/test-trip-layout.js` verifica geração das 11 colunas, valores, ações, escape HTML, estado vazio, edição e preservação do formulário ao redimensionar. Checagem `npm.cmd run check` aprovada. Testes com DOM simulado não equivalem à validação visual; nenhum navegador estava conectado nesta sessão.
+
+Referências de interface: [tabelas do Carbon Design System](https://v10.carbondesignsystem.com/components/data-table/usage/) e [diálogo HTML nativo na W3C](https://www.w3.org/WAI/WCAG22/Techniques/html/H102). O usuário solicitou a integração e publicação desta entrega em dev, main e prod; consulte os hashes remotos ao retomar.
+
 Repositório: https://github.com/livingsthonjessed/rota-certa
 
 Workspace usado: `C:\Users\livin\OneDrive\Documentos\Projeto1`, PowerShell. Branch de trabalho: `dev`.
@@ -247,4 +259,4 @@ O script inicial `migrate-to-postgres.js` pode importar o SQLite legado quando o
 5. Registrar mudanças nas regras, novas migrações e resultados efetivamente observados.
 6. Quando houver publicação, atualizar commit/branches e separar o estado da VPS.
 
-Última entrega: campo “Comissão do motorista pendente” no resumo, implementado e testado. O usuário solicitou sua integração em dev, main e prod e envio ao GitHub, incluindo os arquivos de continuidade nesta entrega. Confira as referências remotas ao retomar. A confirmação de implantação na VPS continua ausente.
+Entrega anterior: comissão pendente e arquivos de continuidade, commit `3419cdc`, integrado em dev, main e prod. Entrega atual: layout gerencial do cadastro de viagens para telas a partir de 1280 px, com tabela e formulário em diálogo. Publicação solicitada em dev, main e prod. Antes dos merges, passaram os checks de sintaxe, testes específicos de lógica do layout e 286 verificações de integração. Validação visual indisponível por falta de navegador conectado. Confira as referências remotas para confirmar o commit atual. A confirmação de implantação na VPS continua ausente.
