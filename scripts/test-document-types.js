@@ -199,6 +199,33 @@ async function main(){
  await req(editTrip,'PUT',{...tripPayload,driverCommission:20},driverCookie,403);
  await req(editTrip,'PUT',{...tripPayload,driverCommission:20},b,400);
  assert.equal((await req('/api/admin/trips','GET',undefined,a)).data.items.find(row=>row.id===registered.id).driver_commission,15);checks++;
+ // Only driver payment debits in this trip reduce its commission.
+ const driverPayment=(await req(endpoint,'POST',{name:'Pagamento motorista',nature:'debit'},a,201)).data;
+ async function commission(expected){
+  const page=await summary();
+  assert.ok(page.includes(`<dt>Quilometragem</dt><dd>100 km</dd><dt class="pending-label">Comissão do motorista pendente</dt><dd>${expected===null?'Não informado':format(expected)}</dd>`));checks++;
+ }
+ await db.query('UPDATE trips SET mileage=100,freight_value=1000,driver_commission=12.5 WHERE id=$1',[summaryTrip]);
+ await commission(125);
+ for(const amount of [20,30])await req(summaryDocs,'POST',{...doc,documentType:driverPayment.name,amount},a,201);
+ await commission(75);
+ await req(summaryDocs,'POST',{...doc,documentType:'Outros gastos',amount:10},a,201);
+ await req(route,'POST',{...doc,documentType:driverPayment.name,amount:999},a,201);
+ await commission(75);
+ await req(`${endpoint}/${driverPayment.id}`,'PUT',{name:'Pagamento motorista',nature:'credit'},a);
+ await commission(125);
+ await req(`${endpoint}/${driverPayment.id}`,'PUT',{name:'PAGAMENTO MOTORISTA',nature:'debit'},a);
+ await commission(75);
+ const extra=(await req(summaryDocs,'POST',{...doc,documentType:'PAGAMENTO MOTORISTA',amount:75},a,201)).data.id;
+ await commission(0);
+ await req(`/api/admin/trip-documents/${extra}`,'PUT',{documentType:'PAGAMENTO MOTORISTA',description:'Excedente',amount:80},a);
+ await commission(-5);
+ await db.query('DELETE FROM trip_documents WHERE trip_id=$1',[summaryTrip]);
+ await db.query('UPDATE trips SET freight_value=10.05,driver_commission=10 WHERE id=$1',[summaryTrip]);
+ await commission(1.01);
+ await db.query('UPDATE trips SET driver_commission=0 WHERE id=$1',[summaryTrip]);await commission(0);
+ await db.query('UPDATE trips SET driver_commission=NULL WHERE id=$1',[summaryTrip]);await commission(null);
+ await db.query('UPDATE trips SET freight_value=NULL,driver_commission=10 WHERE id=$1',[summaryTrip]);await commission(null);
  console.log(`${checks} verificações passaram: migração, persistência, documentos e isolamento por empresa/perfil.`);
 }
 main().catch(error=>{console.error(error);process.exitCode=1}).finally(async()=>{

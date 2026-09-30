@@ -79,7 +79,14 @@ async function api(req,res,url){
   }
   const tripSummary=resource.match(/^trips\/(\d+)\/summary$/);
   if(req.method==='GET'&&tripSummary){
-   const result=await pool.query(`SELECT t.code,t.origin,t.destination,t.start_date::text start_date,t.end_date::text end_date,t.mileage,t.freight_value,t.vehicle,c.name customer_name,u.name driver_name,v.plate,v.model FROM trips t LEFT JOIN customers c ON c.id=t.customer_id AND c.company_id=t.company_id LEFT JOIN users u ON u.id=t.driver_id AND u.company_id=t.company_id LEFT JOIN vehicles v ON v.id=t.vehicle_id AND v.company_id=t.company_id WHERE t.id=$1 AND t.company_id=$2`,[Number(tripSummary[1]),user.company_id]);
+   const result=await pool.query(`SELECT t.code,t.origin,t.destination,t.start_date::text start_date,t.end_date::text end_date,t.mileage,t.freight_value,t.driver_commission,
+    ROUND(t.freight_value*t.driver_commission/100,2)-COALESCE((
+     SELECT SUM(ABS(pd.amount)) FROM trip_documents pd
+     JOIN document_types pt ON pt.company_id=pd.company_id AND pt.name=pd.document_type
+     WHERE pd.trip_id=t.id AND pd.company_id=t.company_id
+      AND pt.nature='debit' AND lower(trim(pt.name))='pagamento motorista'
+    ),0) driver_commission_pending,
+    t.vehicle,c.name customer_name,u.name driver_name,v.plate,v.model FROM trips t LEFT JOIN customers c ON c.id=t.customer_id AND c.company_id=t.company_id LEFT JOIN users u ON u.id=t.driver_id AND u.company_id=t.company_id LEFT JOIN vehicles v ON v.id=t.vehicle_id AND v.company_id=t.company_id WHERE t.id=$1 AND t.company_id=$2`,[Number(tripSummary[1]),user.company_id]);
    if(!result.rowCount)return send(res,404,{error:'Viagem não encontrada.'});
    const documents=await pool.query(`SELECT d.document_type,d.amount,d.diesel_value,d.km,d.description,dt.nature,
     COALESCE(SUM(ABS(d.amount)) FILTER (WHERE dt.nature='credit') OVER (),0) total_credit,
