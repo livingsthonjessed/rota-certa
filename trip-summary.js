@@ -8,10 +8,12 @@ function renderTripSummary(trip,documents,company){
  const rows=documents.map(doc=>`<tr><td>${esc(doc.document_type)}</td><td class="numeric${doc.amount==null?'':doc.nature==='credit'?' amount-credit':' amount-debit'}">${doc.amount==null?'—':money.format(doc.nature==='credit'?Math.abs(Number(doc.amount)):-Math.abs(Number(doc.amount)))}</td><td class="numeric">${doc.diesel_value==null?'—':money.format(doc.diesel_value)}</td><td class="numeric">${doc.km==null?'—':number.format(doc.km)}</td><td class="description">${esc(doc.description)}</td></tr>`).join('');
  const credit=documents[0]?.total_credit??0,debit=documents[0]?.total_debit??0;
  const total=documents[0]?.total_amount??0;
+ const pending=trip.freight_value==null?null:(Math.round(Number(credit)*100)-Math.round(Number(trip.freight_value)*100))/100;
+ const pendingField=`<dt class="pending-label">Valor pendente recebimento</dt><dd${pending>0?' class="amount-credit"':pending<0?' class="amount-debit"':''}>${pending==null?'Não informado':money.format(pending)}</dd>`;
  return `<!doctype html>
 <html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumo da viagem ${esc(trip.code)}</title><link rel="stylesheet" href="/trip-summary.css"></head>
 <body><main><header><p class="company">${esc(company)}</p><h1>Resumo da viagem</h1><p class="code">${esc(trip.code)}</p></header>
-<dl class="trip-fields">${fields.map(([label,value])=>`<div><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>
+<dl class="trip-fields">${fields.map(([label,value])=>`<div><dt>${label}</dt><dd>${esc(value)}</dd>${label==='Valor do frete'?pendingField:''}</div>`).join('')}</dl>
 <table><caption>Documentos anexados à viagem</caption><thead><tr><th scope="col">Tipo</th><th scope="col" class="numeric">Valor</th><th scope="col" class="numeric">Valor Diesel</th><th scope="col" class="numeric">KM</th><th scope="col">Descrição</th></tr></thead>
 <tbody>${rows||'<tr><td colspan="5" class="empty">Nenhum documento anexado à viagem.</td></tr>'}</tbody>
 <tfoot><tr><th scope="row">Total de crédito</th><td class="numeric amount-credit">${money.format(credit)}</td><td colspan="3"></td></tr>

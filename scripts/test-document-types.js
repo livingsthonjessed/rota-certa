@@ -162,6 +162,18 @@ async function main(){
  html=await summary();totals(html,0,-0.60,-0.60);assert.ok(html.includes('Recebimento revisado'));checks++;
  await req(`${endpoint}/${payment.id}`,'PUT',{name:'<Recebimento>',nature:'credit'},a);
  html=await summary();totals(html,0.30,-0.30,0);assert.ok(html.includes('&lt;Recebimento&gt;'));assert.ok(!html.includes('<Recebimento>'));checks+=2;
+ // Pending receipts use credits minus freight, independently of trip debits.
+ for(const [freight,pending] of [[1,-0.70],[0.10,0.20],[0.30,0],[null,null]]){
+  await db.query('UPDATE trips SET freight_value=$1 WHERE id=$2',[freight,summaryTrip]);
+  html=await summary();
+  const expected=`<dt>Valor do frete</dt><dd>${freight==null?'Não informado':format(freight)}</dd><dt class="pending-label">Valor pendente recebimento</dt><dd${pending>0?' class="amount-credit"':pending<0?' class="amount-debit"':''}>${pending==null?'Não informado':format(pending)}</dd>`;
+  assert.ok(html.includes(expected),'Pending amount, color and placement below freight');checks++;
+  totals(html,0.30,-0.30,0);
+ }
+ await db.query('UPDATE trips SET freight_value=1 WHERE id=$1',[summaryTrip]);
+ await db.query('DELETE FROM trip_documents WHERE trip_id=$1',[summaryTrip]);
+ html=await summary();
+ assert.ok(html.includes(`<dt class="pending-label">Valor pendente recebimento</dt><dd class="amount-debit">${format(-1)}</dd>`));checks++;
  console.log(`${checks} verificações passaram: migração, persistência, documentos e isolamento por empresa/perfil.`);
 }
 main().catch(error=>{console.error(error);process.exitCode=1}).finally(async()=>{

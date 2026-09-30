@@ -9,6 +9,7 @@ h1 { font-size:26px; margin:0; }
 .trip-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px 24px; margin:26px 0 32px; }
 .trip-fields div { break-inside:avoid; }
 dt { font-size:12px; color:#66758a; margin-bottom:6px; }
+.pending-label { margin-top:16px; }
 dd { margin:0; font-size:14px; font-weight:bold; overflow-wrap:anywhere; }
 table { width:100%; border-collapse:collapse; font-size:13px; }
 caption { text-align:left; font-size:18px; font-weight:bold; margin-bottom:14px; }
