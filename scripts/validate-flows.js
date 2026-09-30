@@ -13,7 +13,7 @@ async function run(){
  const env={...process.env,DATABASE_URL:source.href,PORT:'18080',NODE_ENV:'test',GOOGLE_MAPS_API_KEY:''};
  qa=new Client({connectionString:source.href});await qa.connect();
  const schema=fs.readFileSync(path.join(__dirname,'migrate-to-postgres.js'),'utf8').match(/const schema = `([\s\S]*?)`;/)?.[1];if(!schema)throw new Error('Base schema not found');await qa.query(schema);
- for(const file of ['migrate-admin-modules.js','migrate-multicompany.js']){const r=spawnSync(process.execPath,[path.join(__dirname,file)],{env,cwd:root,encoding:'utf8'});if(r.status!==0)throw new Error('Migration failed: '+file)}
+ for(const file of ['migrate-admin-modules.js','migrate-multicompany.js','migrate-document-types.js']){const r=spawnSync(process.execPath,[path.join(__dirname,file)],{env,cwd:root,encoding:'utf8'});if(r.status!==0)throw new Error('Migration failed: '+file)}
  server=spawn(process.execPath,['server.js'],{cwd:root,env,stdio:['ignore','pipe','pipe']});let logs='';server.stdout.on('data',x=>logs+=x);server.stderr.on('data',()=>{});
  await new Promise((resolve,reject)=>{let count=0;const timer=setInterval(()=>{if(logs.includes('disponíveis')){clearInterval(timer);resolve()}else if(++count>50||server.exitCode!==null){clearInterval(timer);reject(new Error('Test server did not start'))}},100)});
  await req('Site institucional','/');await req('Página do sistema','/motorista.html');await req('JavaScript','/app.js');await req('CSS','/styles.css');

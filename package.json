@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check app.js && node --check trip-summary.js && node --check scripts/migrate-to-postgres.js && node --check scripts/migrate-admin-modules.js && node --check scripts/migrate-multicompany.js",
+    "check": "node --check server.js && node --check app.js && node --check trip-summary.js && node --check scripts/migrate-to-postgres.js && node --check scripts/migrate-admin-modules.js && node --check scripts/migrate-multicompany.js && node --check document-types.js && node --check scripts/migrate-document-types.js",
     "migrate:admin": "node scripts/migrate-admin-modules.js",
     "migrate:companies": "node scripts/migrate-multicompany.js",
-    "migrate:deploy": "node scripts/migrate-to-postgres.js && node scripts/migrate-admin-modules.js && node scripts/migrate-multicompany.js"
+    "migrate:deploy": "node scripts/migrate-to-postgres.js && node scripts/migrate-admin-modules.js && node scripts/migrate-multicompany.js && node scripts/migrate-document-types.js",
+    "migrate:document-types": "node scripts/migrate-document-types.js"
   },
   "engines": {
     "node": ">=22.5"

@@ -135,6 +135,9 @@ textarea { resize:vertical; }
 .record-icon-button svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .record-icon-button:hover { background:#d8e9fb; }
 .document-row small { color:var(--muted); overflow-wrap:anywhere; }
+.document-type-form .record-side { flex-wrap:wrap; text-align:left; }
+.document-type-form label { min-width:150px; }
+.document-type-feedback { flex-basis:100%; overflow-wrap:anywhere; }
 #admin-cancel-edit { margin-top:8px; }
 @media (max-width:600px) {
   main { padding:24px 16px; }

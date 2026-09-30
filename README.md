@@ -41,6 +41,16 @@ Depois acesse `http://localhost:8000`. A Central do Motorista fica em `http://lo
 
 ## Banco de dados
 
+### Tipos de documento
+
+O menu administrativo **Tipo documento** permite configurar crédito ou débito por empresa. Os padrões são CTE e Pagamento cliente como crédito; Abastecimento e Outros gastos como débito. A alteração vale para a classificação dos documentos existentes e novos da empresa.
+
+**Pagamento cliente** exige valor positivo, descrição e anexo. CTE continua sem valor; Abastecimento mantém valor, KM e valor do diesel. A natureza aparece na seleção e na listagem dos documentos. Os cálculos do resumo ainda não utilizam essa classificação.
+
+Para atualizar uma instalação existente, execute `npm.cmd run migrate:document-types` e reinicie o servidor. A migração também faz parte de `migrate:deploy`, preserva documentos existentes e pode ser repetida sem sobrescrever as configurações. Novas empresas recebem os quatro tipos automaticamente.
+
+Validação isolada no PostgreSQL local: `node scripts/test-document-types.js`.
+
 O servidor utiliza a variável `DATABASE_URL` do arquivo `.env`. Para preparar uma nova instalação local do PostgreSQL, execute:
 
 ```powershell
