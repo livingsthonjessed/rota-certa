@@ -16,6 +16,10 @@ th,td { padding:12px 10px; text-align:left; border-bottom:1px solid #d8e2ee; ver
 thead { background:#e8f2ff; color:#0b4f9c; }
 td:first-child { width:20%; }
 .numeric { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.amount-credit { color:#166534; }
+.amount-debit { color:#b91c1c; }
+.amount-credit,.amount-debit { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+.balance th,.balance td { border-top:2px solid #0b4f9c; }
 .description { white-space:pre-wrap; overflow-wrap:anywhere; }
 tfoot { font-weight:bold; background:#e8f2ff; }
 .empty { text-align:center; color:#66758a; padding:24px; }

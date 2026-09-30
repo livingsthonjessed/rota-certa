@@ -128,6 +128,40 @@ async function main(){
  await db.query('BEGIN');await migrateDocumentTypes(db);await db.query('COMMIT');
  assert.deepEqual((await req(endpoint,'GET',undefined,b)).data.items,[]);checks++;
  await req(endpoint,'POST',{name:'Novo tipo',nature:'credit'},b,201);
+ // Summary uses the current nature, exact NUMERIC totals and signed amounts.
+ const summaryTrip=(await db.query("INSERT INTO trips(code,origin,destination,vehicle,budget,driver_id,company_id) VALUES ('QA-SUMMARY','A','B','ABC1D23',999,$1,$2) RETURNING id",[driver.id,driver.company_id])).rows[0].id;
+ const summaryRoute=`/api/admin/trips/${summaryTrip}/summary`,summaryDocs=`/api/admin/trips/${summaryTrip}/documents`;
+ const format=value=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value);
+ async function summary(cookie=a,status=200){
+  const response=await fetch('http://127.0.0.1:18081'+summaryRoute,{headers:{Cookie:cookie}});
+  assert.equal(response.status,status);checks++;
+  if(status===200){assert.equal(response.headers.get('content-type'),'text/html; charset=utf-8');assert.equal(response.headers.get('cache-control'),'no-store');checks+=2}
+  return response.text();
+ }
+ function totals(html,credit,debit,balance){
+  const footer=html.slice(html.indexOf('<tfoot>'),html.indexOf('</tfoot>'));
+  for(const [label,value] of [['Total de crédito',credit],['Total de débito',debit],['Total',balance]]){
+   assert.ok(footer.includes(`<th scope="row">${label}</th><td class="numeric${label==='Total de crédito'?' amount-credit':label==='Total de débito'?' amount-debit':value>0?' amount-credit':value<0?' amount-debit':''}">${format(value)}</td>`),`${label}: ${value}`);checks++;
+  }
+ }
+ await summary('',401);await summary(b,404);await summary(driverCookie,403);
+ const emptyHtml=await summary();totals(emptyHtml,0,0,0);assert.ok(emptyHtml.includes('Nenhum documento'));checks++;
+ await req(summaryDocs,'POST',{...doc,documentType:'Conhecimento',amount:null},a,201);
+ const noAmountHtml=await summary();totals(noAmountHtml,0,0,0);assert.ok(noAmountHtml.includes('<td class="numeric">—</td>'));checks++;
+ const payment=(await req(endpoint,'POST',{name:'Recebimento',nature:'credit'},a,201)).data;
+ for(const amount of [0.10,0.20])await req(summaryDocs,'POST',{...doc,documentType:payment.name,amount},a,201);
+ const fuelDoc=(await req(summaryDocs,'POST',{...doc,documentType:'Combustivel',amount:0.40,km:100,dieselValue:6.5},a,201)).data.id;
+ let html=await summary();totals(html,0.30,-0.40,-0.10);
+ assert.ok(html.includes(`<td class="numeric amount-credit">${format(0.10)}</td>`));
+ assert.ok(html.includes(`<td class="numeric amount-debit">${format(-0.40)}</td>`));
+ assert.ok(html.includes(`<td class="numeric">${format(6.5)}</td>`));checks+=3;
+ const updateFuel=amount=>req(`/api/admin/trip-documents/${fuelDoc}`,'PUT',{documentType:'Combustivel',description:'Teste',amount,km:100,dieselValue:6.5},a);
+ await updateFuel(0.20);totals(await summary(),0.30,-0.20,0.10);
+ await updateFuel(0.30);html=await summary();totals(html,0.30,-0.30,0);assert.ok(!html.includes(format(-0)));checks++;
+ await req(`${endpoint}/${payment.id}`,'PUT',{name:'Recebimento revisado',nature:'debit'},a);
+ html=await summary();totals(html,0,-0.60,-0.60);assert.ok(html.includes('Recebimento revisado'));checks++;
+ await req(`${endpoint}/${payment.id}`,'PUT',{name:'<Recebimento>',nature:'credit'},a);
+ html=await summary();totals(html,0.30,-0.30,0);assert.ok(html.includes('&lt;Recebimento&gt;'));assert.ok(!html.includes('<Recebimento>'));checks+=2;
  console.log(`${checks} verificações passaram: migração, persistência, documentos e isolamento por empresa/perfil.`);
 }
 main().catch(error=>{console.error(error);process.exitCode=1}).finally(async()=>{

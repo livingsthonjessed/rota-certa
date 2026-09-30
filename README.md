@@ -47,7 +47,7 @@ O menu administrativo **Tipo documento** permite incluir, listar, editar e exclu
 
 Os padrões iniciais são CTE e Pagamento cliente como crédito; Abastecimento e Outros gastos como débito. Novos tipos exigem valor, descrição e anexo. As regras especiais de CTE (sem valor) e Abastecimento (valor, KM e valor do diesel) são preservadas mesmo que seus nomes sejam alterados.
 
-**Pagamento cliente** exige valor positivo, descrição e anexo. CTE continua sem valor; Abastecimento mantém valor, KM e valor do diesel. A natureza aparece na seleção e na listagem dos documentos. Os cálculos do resumo ainda não utilizam essa classificação.
+**Pagamento cliente** exige valor positivo, descrição e anexo. CTE continua sem valor; Abastecimento mantém valor, KM e valor do diesel. A natureza aparece na seleção e na listagem dos documentos. No resumo, créditos aparecem positivos em verde escuro e débitos negativos em vermelho. O rodapé mostra Total de crédito, Total de débito e Total (créditos menos débitos), com somas exatas no PostgreSQL. Todos os tipos classificados como crédito entram no total de crédito. Documentos sem valor não entram nas somas; valor do diesel e valor do frete são apenas informativos nesse cálculo.
 
 Para atualizar uma instalação existente, execute `npm.cmd run migrate:document-types` e reinicie o servidor. A migração também faz parte de `migrate:deploy`, preserva documentos existentes e pode ser repetida sem sobrescrever as configurações nem recriar tipos excluídos ou renomeados. Novas empresas recebem os quatro tipos automaticamente.
 
