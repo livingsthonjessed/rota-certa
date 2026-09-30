@@ -133,6 +133,9 @@ table.trip-grid { display:table; border-collapse:separate; border-spacing:0; wid
 .trip-grid .record-actions { flex-wrap:nowrap; }
 .trip-grid .edit-expense { white-space:nowrap; text-decoration:none; }
 .trip-grid-hint { margin:0; padding:14px 24px; }
+.trip-grid-pagination { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 24px; color:var(--muted); font-size:13px; }
+.trip-grid-pagination div { display:flex; align-items:center; gap:16px; }
+.trip-grid-pagination button:disabled { opacity:.45; cursor:default; }
 @media (min-width:1280px) {
  .workspace-main:has(.trip-admin-layout):has(#admin-view:not([hidden])) { max-width:none; width:100%; }
  .trip-admin-layout { display:block; min-width:0; }

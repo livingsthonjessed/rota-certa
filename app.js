@@ -111,17 +111,34 @@ function renderTripGrid(items){
  const numeric=value=>value==null?'—':Number(value).toLocaleString('pt-BR',{maximumFractionDigits:2});
  return items.map(x=>`<tr><td><strong>${esc(x.origin)}</strong><small>${esc(x.code)}</small></td><td>${esc(x.destination)}</td><td class="trip-nowrap">${formatDate(x.start_date)}</td><td class="trip-nowrap">${formatDate(x.end_date)}</td><td class="trip-number">${numeric(x.mileage)}</td><td class="trip-number">${x.freight_value==null?'—':money.format(x.freight_value)}</td><td class="trip-number">${x.driver_commission==null?'—':numeric(x.driver_commission)+'%'}</td><td>${esc(x.customer_name||'Não informado')}</td><td>${esc(x.driver_name||'Não informado')}</td><td class="trip-nowrap">${esc(x.plate||'Não informado')}</td><td class="trip-grid-actions"><div class="record-actions"><button type="button" class="edit-expense" data-admin-edit="${x.id}" aria-label="Editar viagem ${esc(x.code)}">Editar</button><a class="edit-expense" href="/api/admin/trips/${x.id}/summary" target="_blank" rel="noopener noreferrer" aria-label="Resumo da viagem ${esc(x.code)} (abre em nova aba)">Resumo</a><button type="button" class="edit-expense" data-trip-documents="${x.id}" aria-label="Documentos da viagem ${esc(x.code)}">Documento</button></div></td></tr>`).join('')||'<tr><td colspan="11" class="empty">Nenhuma viagem encontrada.</td></tr>';
 }
+let tripGridPage=1;
+function tripGridPageData(items,query='',page=1){
+ const normalize=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const search=normalize(query.trim());
+ const filtered=items.filter(x=>[x.code,x.origin,x.destination,x.customer_name,x.driver_name,x.plate].some(value=>normalize(value).includes(search)));
+ filtered.sort((a,b)=>String(b.start_date||'').slice(0,10).localeCompare(String(a.start_date||'').slice(0,10))||Number(b.id)-Number(a.id));
+ const pages=Math.max(1,Math.ceil(filtered.length/10)),current=Math.min(pages,Math.max(1,page)),offset=(current-1)*10;
+ return {items:filtered.slice(offset,offset+10),page:current,pages,total:filtered.length,first:filtered.length?offset+1:0,last:Math.min(offset+10,filtered.length)};
+}
+function updateTripGrid(){
+ const data=tripGridPageData(currentAdminItems,$('#trip-grid-search').value,tripGridPage);tripGridPage=data.page;
+ $('#trip-grid-body').innerHTML=renderTripGrid(data.items);
+ $('#trip-grid-count').textContent=`${data.first}–${data.last} de ${data.total} viagem(ns)`;
+ $('#trip-grid-page').textContent=`Página ${data.page} de ${data.pages}`;
+ $('#trip-grid-prev').disabled=data.page===1;$('#trip-grid-next').disabled=data.page===data.pages;
+ $('.trip-grid-scroll').scrollTop=0;
+}
 function setupTripDesktop(){
  const layout=$('#admin-view .admin-layout');layout.classList.add('trip-admin-layout');
  const form=$('#admin-form'),host=document.createElement('div');host.id='trip-inline-form';form.before(host);host.append(form);
  layout.querySelector('.records').classList.add('trip-mobile-records');
- layout.insertAdjacentHTML('beforeend',`<section class="trip-manager"><div class="trip-manager-heading"><div><span class="label">GESTÃO DE VIAGENS</span><h2>Viagens cadastradas</h2></div><button type="button" class="primary" id="add-admin-trip">Adicionar</button></div><div class="trip-manager-toolbar"><label for="trip-grid-search">Buscar viagens<input id="trip-grid-search" type="search" placeholder="Origem, destino, cliente, motorista ou veículo"></label><span id="trip-grid-count" role="status">${currentAdminItems.length} viagem(ns)</span></div><div class="trip-grid-scroll" role="region" aria-label="Viagens cadastradas — tabela com rolagem" tabindex="0"><table class="trip-grid"><caption class="sr-only">Viagens cadastradas e ações</caption><thead><tr>${['Origem','Destino','Data início','Data fim','Quilometragem','Valor do frete','Comissão motorista','Cliente','Motorista','Veículo','Ações'].map(label=>`<th scope="col">${label}</th>`).join('')}</tr></thead><tbody id="trip-grid-body">${renderTripGrid(currentAdminItems)}</tbody></table></div><p class="trip-grid-hint">Role a tabela para consultar todas as colunas. As ações permanecem à direita.</p></section><dialog id="trip-admin-dialog" aria-labelledby="admin-form-title"><button type="button" id="close-admin-trip" class="icon-button" aria-label="Fechar cadastro de viagem">×</button></dialog>`);
+ layout.insertAdjacentHTML('beforeend',`<section class="trip-manager"><div class="trip-manager-heading"><div><span class="label">GESTÃO DE VIAGENS</span><h2>Viagens cadastradas</h2></div><button type="button" class="primary" id="add-admin-trip">Adicionar</button></div><div class="trip-manager-toolbar"><label for="trip-grid-search">Buscar viagens<input id="trip-grid-search" type="search" placeholder="Origem, destino, cliente, motorista ou veículo"></label><span id="trip-grid-count" role="status">${currentAdminItems.length} viagem(ns)</span></div><div class="trip-grid-scroll" role="region" aria-label="Viagens cadastradas — tabela com rolagem" tabindex="0"><table class="trip-grid"><caption class="sr-only">Viagens cadastradas e ações</caption><thead><tr>${['Origem','Destino','Data início','Data fim','Quilometragem','Valor do frete','Comissão motorista','Cliente','Motorista','Veículo','Ações'].map(label=>`<th scope="col"${label==='Data início'?' aria-sort="descending"':''}>${label}</th>`).join('')}</tr></thead><tbody id="trip-grid-body"></tbody></table></div><p class="trip-grid-hint">Role a tabela para consultar todas as colunas. As ações permanecem à direita.</p></section><dialog id="trip-admin-dialog" aria-labelledby="admin-form-title"><button type="button" id="close-admin-trip" class="icon-button" aria-label="Fechar cadastro de viagem">×</button></dialog>`);
  form.insertAdjacentHTML('beforeend','<p id="trip-admin-error" class="error" role="alert"></p>');
- $('#trip-grid-search').addEventListener('input',e=>{
-  const normalize=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  const query=normalize(e.target.value.trim()),items=currentAdminItems.filter(x=>[x.code,x.origin,x.destination,x.customer_name,x.driver_name,x.plate].some(value=>normalize(value).includes(query)));
-  $('#trip-grid-body').innerHTML=renderTripGrid(items);$('#trip-grid-count').textContent=`${items.length} de ${currentAdminItems.length} viagem(ns)`;
- });
+ $('.trip-grid-hint').insertAdjacentHTML('beforebegin','<nav class="trip-grid-pagination" aria-label="Paginação das viagens"><span>10 registros por página</span><div><button type="button" class="secondary" id="trip-grid-prev">Anterior</button><span id="trip-grid-page" role="status"></span><button type="button" class="secondary" id="trip-grid-next">Próxima</button></div></nav>');
+ $('#trip-grid-search').addEventListener('input',()=>{tripGridPage=1;updateTripGrid()});
+ $('#trip-grid-prev').addEventListener('click',()=>{tripGridPage--;updateTripGrid()});
+ $('#trip-grid-next').addEventListener('click',()=>{tripGridPage++;updateTripGrid()});
+ tripGridPage=1;updateTripGrid();
  $('#trip-admin-dialog').addEventListener('cancel',e=>{if($('#admin-save')?.disabled)e.preventDefault()});
  syncTripLayout();
 }

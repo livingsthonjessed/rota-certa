@@ -155,6 +155,8 @@ Esta alteração foi implementada após `d33d0bb` e integra a entrega “Comiss�
 
 ### Layout gerencial de viagens (entrega posterior a `3419cdc`)
 
+Entrega posterior a `2504317`: tabela gerencial ordenada por data de início decrescente (desempate por ID decrescente, datas ausentes ao final), com até 10 registros por página, controles Anterior/Próxima, indicador de página e faixa de resultados. A busca filtra todas as viagens antes de paginar e volta à primeira página quando alterada. Paginação no frontend; sem mudança de API/banco ou dos cartões móveis. Testes de lógica da paginação, ordenação, filtro e estados vazios passaram, assim como a checagem de sintaxe. O usuário solicitou integração em dev, main e prod e envio ao GitHub; confira os hashes remotos ao retomar. Implantação na VPS não confirmada.
+
 Correção local após `19d1082`: o seletor genérico `.trip-grid` da lista antiga aplicava `display:grid` à nova tabela, desalinhando cabeçalho e dados. O estilo da tabela agora usa `table.trip-grid` com `display:table`, preservando a lista antiga e impedindo que a largura mínima de 1500 px afete seus cartões. Os títulos das três colunas numéricas são alinhados à direita, como seus valores. Correção ainda sem publicação.
 
 A partir de 1280 px de largura do viewport, o cadastro de viagens usa tabela com Origem, Destino, Data início, Data fim, Quilometragem, Valor do frete, Comissão motorista, Cliente, Motorista, Veículo e Ações. O navegador não determina com precisão as polegadas físicas do monitor; o breakpoint foi adotado como aproximação para a solicitação de monitores a partir de 14 polegadas.

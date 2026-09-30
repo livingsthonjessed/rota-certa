@@ -36,3 +36,13 @@ vm.runInContext(functionSource('startAdminEdit',"$('#login-form').addEventListen
 context.startAdminEdit(17);assert.equal(context.opened,2);assert.equal(form.elements.driverCommission.value,0);assert.equal(form.elements.vehicleId.value,3);
 context.tripDesktop.matches=false;context.startAdminEdit(17);assert.equal(context.scrolled,true);assert.equal(context.opened,2);
 console.log('Layout: 11 colunas, valores, ações, escape HTML, estado vazio, edição e preservação de dados ao redimensionar passaram.');
+const trips=Array.from({length:23},(_,i)=>({...trip,id:i+1,start_date:`2026-09-${String(i+1).padStart(2,'0')}`,origin:i<11?'Belém':'Curitiba'}));
+let page=context.tripGridPageData(trips);
+assert.equal(page.items.length,10);assert.equal(page.items[0].id,23);assert.equal(page.items[9].id,14);assert.equal(page.pages,3);
+page=context.tripGridPageData(trips,'',2);assert.equal(page.items[0].id,13);assert.equal(page.items.length,10);
+page=context.tripGridPageData(trips,'',3);assert.equal(page.items.length,3);assert.equal(page.items[2].id,1);
+page=context.tripGridPageData(trips,'belem',99);assert.equal(page.total,11);assert.equal(page.page,2);assert.equal(page.items.length,1);
+page=context.tripGridPageData(trips,'inexistente');assert.equal(page.total,0);assert.equal(page.first,0);assert.equal(page.last,0);assert.equal(page.pages,1);
+page=context.tripGridPageData([{...trip,id:1},{...trip,id:2},{...trip,id:3,start_date:null}]);assert.equal(page.items[0].id,2);assert.equal(page.items[2].id,3);
+assert.equal(trips[0].id,1,'Source order must remain unchanged');
+console.log('Ordenação decrescente, desempate, filtro, limite de 10, última página e estado vazio passaram.');
