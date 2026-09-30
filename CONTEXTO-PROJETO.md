@@ -155,6 +155,8 @@ Esta alteração foi implementada após `d33d0bb` e integra a entrega “Comiss�
 
 ### Layout gerencial de viagens (entrega posterior a `3419cdc`)
 
+Correção local após `19d1082`: o seletor genérico `.trip-grid` da lista antiga aplicava `display:grid` à nova tabela, desalinhando cabeçalho e dados. O estilo da tabela agora usa `table.trip-grid` com `display:table`, preservando a lista antiga e impedindo que a largura mínima de 1500 px afete seus cartões. Os títulos das três colunas numéricas são alinhados à direita, como seus valores. Correção ainda sem publicação.
+
 A partir de 1280 px de largura do viewport, o cadastro de viagens usa tabela com Origem, Destino, Data início, Data fim, Quilometragem, Valor do frete, Comissão motorista, Cliente, Motorista, Veículo e Ações. O navegador não determina com precisão as polegadas físicas do monitor; o breakpoint foi adotado como aproximação para a solicitação de monitores a partir de 14 polegadas.
 
 O botão **Adicionar** e a ação **Editar** abrem um `<dialog>` com o formulário existente. Há Cancelar, fechar e Esc, foco inicial no primeiro campo e erros dentro do diálogo. A tabela tem busca textual sem distinção de acentos, contagem de resultados, rolagem, cabeçalho fixo e ações fixas à direita (Editar, Resumo e Documento). Valores numéricos ficam alinhados à direita.
