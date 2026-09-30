@@ -32,6 +32,14 @@ async function googleJson(url,options={}){
 function freightQuotePayload(q){return {quoteId:q.id,createdAt:q.created_at,savedAt:q.saved_at,origin:q.origin,destination:q.destination,mapUrl:q.map_url,vehicle:{id:q.vehicle_id,plate:q.vehicle_plate,model:q.vehicle_model,fuelConsumption:Number(q.fuel_consumption),axleCount:q.axle_count},route:{distanceKm:Number(q.distance_km),durationMinutes:Number(q.duration_minutes),hasTolls:q.has_tolls,baseTollCost:Number(q.base_toll_cost),tollCost:Number(q.toll_cost),tollEstimateAvailable:q.toll_estimate_available},costs:{estimatedLiters:Number(q.estimated_liters),fuelPrice:Number(q.fuel_price),fuelCost:Number(q.fuel_cost),tollCost:Number(q.toll_cost),driverPayment:Number(q.driver_payment),subtotal:Number(q.subtotal),maintenanceRate:Number(q.maintenance_rate),maintenanceCost:Number(q.maintenance_cost),total:Number(q.total)}}}
 async function tripAccess(id,user){const result=user.role==='admin'?await pool.query('SELECT id,code,origin,destination,vehicle,budget::float8 budget,driver_id,start_date,end_date,status,started_at,submitted_at,closed_at,review_notes,company_id FROM trips WHERE id=$1 AND company_id=$2',[id,user.company_id]):await pool.query('SELECT id,code,origin,destination,vehicle,budget::float8 budget,driver_id,start_date,end_date,status,started_at,submitted_at,closed_at,review_notes,company_id FROM trips WHERE id=$1 AND driver_id=$2 AND company_id=$3',[id,user.id,user.company_id]);return result.rows[0]}
 
+const driverCommissionAmountSql = `ROUND(t.freight_value*t.driver_commission/100,2)`;
+const driverCommissionPendingSql = `ROUND(t.freight_value*t.driver_commission/100,2)-COALESCE((
+     SELECT SUM(ABS(pd.amount)) FROM trip_documents pd
+     JOIN document_types pt ON pt.company_id=pd.company_id AND pt.name=pd.document_type
+     WHERE pd.trip_id=t.id AND pd.company_id=t.company_id
+      AND pt.nature='debit' AND lower(trim(pt.name))='pagamento motorista'
+    ),0)`;
+
 async function api(req,res,url){
  if(req.method==='POST'&&url.pathname==='/api/companies'){
   const d=await readBody(req),cnpj=normalizeCnpj(d.cnpj),cep=digits(d.cep);if(!d.name||!isValidCnpj(cnpj)||cep.length!==8||!isValidEmail(d.email)||!d.responsibleName||String(d.password||'').length<8)return send(res,400,{error:'Preencha os dados, informe um CNPJ brasileiro válido com 14 caracteres, e-mail válido e senha com ao menos 8 caracteres.'});
@@ -80,12 +88,7 @@ async function api(req,res,url){
   const tripSummary=resource.match(/^trips\/(\d+)\/summary$/);
   if(req.method==='GET'&&tripSummary){
    const result=await pool.query(`SELECT t.code,t.origin,t.destination,t.start_date::text start_date,t.end_date::text end_date,t.mileage,t.freight_value,t.driver_commission,
-    ROUND(t.freight_value*t.driver_commission/100,2)-COALESCE((
-     SELECT SUM(ABS(pd.amount)) FROM trip_documents pd
-     JOIN document_types pt ON pt.company_id=pd.company_id AND pt.name=pd.document_type
-     WHERE pd.trip_id=t.id AND pd.company_id=t.company_id
-      AND pt.nature='debit' AND lower(trim(pt.name))='pagamento motorista'
-    ),0) driver_commission_pending,
+    ${driverCommissionPendingSql} driver_commission_pending,
     t.vehicle,c.name customer_name,u.name driver_name,v.plate,v.model FROM trips t LEFT JOIN customers c ON c.id=t.customer_id AND c.company_id=t.company_id LEFT JOIN users u ON u.id=t.driver_id AND u.company_id=t.company_id LEFT JOIN vehicles v ON v.id=t.vehicle_id AND v.company_id=t.company_id WHERE t.id=$1 AND t.company_id=$2`,[Number(tripSummary[1]),user.company_id]);
    if(!result.rowCount)return send(res,404,{error:'Viagem não encontrada.'});
    const documents=await pool.query(`SELECT d.document_type,d.amount,d.diesel_value,d.km,d.description,dt.nature,
@@ -146,7 +149,7 @@ async function api(req,res,url){
   if(req.method==='GET'&&resource==='customers'){const result=await pool.query('SELECT * FROM customers WHERE company_id=$1 ORDER BY name',[user.company_id]);return send(res,200,{items:result.rows})}
   if(req.method==='GET'&&resource==='vehicles'){const result=await pool.query('SELECT * FROM vehicles WHERE company_id=$1 ORDER BY plate',[user.company_id]);return send(res,200,{items:result.rows})}
   if(req.method==='GET'&&resource==='trips'){
-   const result=await pool.query(`SELECT t.id,t.code,t.origin,t.destination,t.start_date,t.end_date,t.mileage::float8 mileage,t.freight_value::float8 freight_value,t.driver_commission::float8 driver_commission,t.customer_id,t.driver_id,t.vehicle_id,t.status,c.name customer_name,u.name driver_name,COALESCE(v.plate,t.vehicle) plate FROM trips t JOIN users u ON u.id=t.driver_id LEFT JOIN customers c ON c.id=t.customer_id LEFT JOIN vehicles v ON v.id=t.vehicle_id WHERE t.company_id=$1 ORDER BY t.id DESC`,[user.company_id]);return send(res,200,{items:result.rows});
+   const result=await pool.query(`SELECT t.id,t.code,t.origin,t.destination,t.start_date,t.end_date,t.mileage::float8 mileage,t.freight_value::float8 freight_value,t.driver_commission::float8 driver_commission,${driverCommissionAmountSql} driver_commission_amount,${driverCommissionPendingSql} driver_commission_pending,t.customer_id,t.driver_id,t.vehicle_id,t.status,c.name customer_name,u.name driver_name,COALESCE(v.plate,t.vehicle) plate FROM trips t JOIN users u ON u.id=t.driver_id LEFT JOIN customers c ON c.id=t.customer_id LEFT JOIN vehicles v ON v.id=t.vehicle_id WHERE t.company_id=$1 ORDER BY t.id DESC`,[user.company_id]);return send(res,200,{items:result.rows});
   }
   if(req.method==='PUT'&&resource==='users'){
    const d=await readBody(req),targetId=Number(url.searchParams.get('id')),rawCpf=String(d.cpf||''),cpf=digits(rawCpf);if(!targetId||!d.name||!/^\d{11}$/.test(rawCpf)||!isValidCpf(cpf)||!['admin','driver'].includes(d.role)||!isValidEmail(d.email)||d.password&&String(d.password).length<8)return send(res,400,{error:'Informe nome, CPF válido, tipo, e-mail válido e, se alterada, senha com ao menos 8 caracteres.'});

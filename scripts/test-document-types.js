@@ -202,11 +202,14 @@ async function main(){
  // Only driver payment debits in this trip reduce its commission.
  const driverPayment=(await req(endpoint,'POST',{name:'Pagamento motorista',nature:'debit'},a,201)).data;
  async function commission(expected){
+  const listing=(await req('/api/admin/trips','GET',undefined,a)).data.items.find(item=>item.id===summaryTrip);
+  assert.equal(listing.driver_commission_pending===null?null:Number(listing.driver_commission_pending),expected);checks++;
   const page=await summary();
   assert.ok(page.includes(`<dt>Quilometragem</dt><dd>100 km</dd><dt class="pending-label">Comissão do motorista pendente</dt><dd>${expected===null?'Não informado':format(expected)}</dd>`));checks++;
  }
  await db.query('UPDATE trips SET mileage=100,freight_value=1000,driver_commission=12.5 WHERE id=$1',[summaryTrip]);
  await commission(125);
+ assert.equal(Number((await req('/api/admin/trips','GET',undefined,a)).data.items.find(item=>item.id===summaryTrip).driver_commission_amount),125);checks++;
  for(const amount of [20,30])await req(summaryDocs,'POST',{...doc,documentType:driverPayment.name,amount},a,201);
  await commission(75);
  await req(summaryDocs,'POST',{...doc,documentType:'Outros gastos',amount:10},a,201);

@@ -120,7 +120,7 @@ textarea { resize:vertical; }
 table.trip-grid { display:table; border-collapse:separate; border-spacing:0; width:100%; min-width:1500px; font-size:13px; }
 .trip-grid th,.trip-grid td { text-align:left; padding:16px 14px; border-bottom:1px solid var(--line); max-width:220px; overflow-wrap:anywhere; }
 .trip-grid th { position:sticky; top:0; z-index:2; background:#e8f2ff; color:#164475; font-size:12px; }
-.trip-grid th:nth-child(5),.trip-grid th:nth-child(6),.trip-grid th:nth-child(7) { text-align:right; }
+.trip-grid th:nth-child(5),.trip-grid th:nth-child(6),.trip-grid th:nth-child(7),.trip-grid th:nth-child(8) { text-align:right; }
 .trip-grid td { background:white; }
 .trip-grid tbody tr:nth-child(even) td { background:#f8fafc; }
 .trip-grid tbody tr:hover td,.trip-grid tbody tr:focus-within td { background:#eef5fd; }
