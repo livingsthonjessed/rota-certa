@@ -36,6 +36,7 @@ async function migrate() {
 
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS mileage NUMERIC(12,2);
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS freight_value NUMERIC(12,2);
+    ALTER TABLE trips ADD COLUMN IF NOT EXISTS driver_commission NUMERIC(5,2) CHECK (driver_commission BETWEEN 0 AND 100);
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS start_date DATE;
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS end_date DATE;
     ALTER TABLE trips ADD COLUMN IF NOT EXISTS customer_id INTEGER REFERENCES customers(id);

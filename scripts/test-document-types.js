@@ -174,6 +174,31 @@ async function main(){
  await db.query('DELETE FROM trip_documents WHERE trip_id=$1',[summaryTrip]);
  html=await summary();
  assert.ok(html.includes(`<dt class="pending-label">Valor pendente recebimento</dt><dd class="amount-debit">${format(-1)}</dd>`));checks++;
+ // Driver commission is persisted on creation and editing, including boundaries.
+ await req('/api/admin/customers','POST',{name:'Cliente comissão'},a,201);
+ const customer=(await req('/api/admin/customers','GET',undefined,a)).data.items[0];
+ await req('/api/admin/vehicles','POST',{plate:'QAT1A23',model:'Truck',chassis:'QA123456789012345',renavam:'12345678901',fuelConsumption:3,axleCount:6},a,201);
+ const vehicle=(await req('/api/admin/vehicles','GET',undefined,a)).data.items[0];
+ const tripPayload={origin:'Origem',destination:'Destino',mileage:100,freightValue:1000,driverId:driver.id,vehicleId:vehicle.id,customerId:customer.id,startDate:'2026-09-30',endDate:'2026-10-01'};
+ const createdTrip=(await req('/api/admin/trips','POST',{...tripPayload,driverCommission:12.5},a,201)).data;
+ const registered=(await req('/api/admin/trips','GET',undefined,a)).data.items.find(row=>row.code===createdTrip.code);
+ assert.equal(registered.driver_commission,12.5);checks++;
+ const editTrip='/api/admin/trips?id='+registered.id;
+ for(const value of [0,100,7.25,'']){
+  await req(editTrip,'PUT',{...tripPayload,driverCommission:value},a);
+  assert.equal((await req('/api/admin/trips','GET',undefined,a)).data.items.find(row=>row.id===registered.id).driver_commission,value===''?null:value);checks++;
+ }
+ for(const value of [-1,101,'abc','Infinity',1.234]){
+  await req('/api/admin/trips','POST',{...tripPayload,driverCommission:value},a,400);
+  await req(editTrip,'PUT',{...tripPayload,driverCommission:value},a,400);
+ }
+ await req(editTrip,'PUT',{...tripPayload,driverCommission:15},a);
+ await req(editTrip,'PUT',tripPayload,a);
+ assert.equal((await req('/api/admin/trips','GET',undefined,a)).data.items.find(row=>row.id===registered.id).driver_commission,15);checks++;
+ await req('/api/admin/trips','POST',tripPayload,a,201);
+ await req(editTrip,'PUT',{...tripPayload,driverCommission:20},driverCookie,403);
+ await req(editTrip,'PUT',{...tripPayload,driverCommission:20},b,400);
+ assert.equal((await req('/api/admin/trips','GET',undefined,a)).data.items.find(row=>row.id===registered.id).driver_commission,15);checks++;
  console.log(`${checks} verificações passaram: migração, persistência, documentos e isolamento por empresa/perfil.`);
 }
 main().catch(error=>{console.error(error);process.exitCode=1}).finally(async()=>{
