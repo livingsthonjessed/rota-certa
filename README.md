@@ -43,11 +43,13 @@ Depois acesse `http://localhost:8000`. A Central do Motorista fica em `http://lo
 
 ### Tipos de documento
 
-O menu administrativo **Tipo documento** permite configurar crédito ou débito por empresa. Os padrões são CTE e Pagamento cliente como crédito; Abastecimento e Outros gastos como débito. A alteração vale para a classificação dos documentos existentes e novos da empresa.
+O menu administrativo **Tipo documento** permite incluir, listar, editar e excluir tipos por empresa, com nome de até 30 caracteres e natureza crédito ou débito. Nomes duplicados são rejeitados, inclusive com diferenças de maiúsculas/minúsculas. A renomeação atualiza os documentos vinculados; a exclusão é bloqueada quando o tipo está em uso. A alteração da natureza vale para documentos existentes e novos da empresa.
+
+Os padrões iniciais são CTE e Pagamento cliente como crédito; Abastecimento e Outros gastos como débito. Novos tipos exigem valor, descrição e anexo. As regras especiais de CTE (sem valor) e Abastecimento (valor, KM e valor do diesel) são preservadas mesmo que seus nomes sejam alterados.
 
 **Pagamento cliente** exige valor positivo, descrição e anexo. CTE continua sem valor; Abastecimento mantém valor, KM e valor do diesel. A natureza aparece na seleção e na listagem dos documentos. Os cálculos do resumo ainda não utilizam essa classificação.
 
-Para atualizar uma instalação existente, execute `npm.cmd run migrate:document-types` e reinicie o servidor. A migração também faz parte de `migrate:deploy`, preserva documentos existentes e pode ser repetida sem sobrescrever as configurações. Novas empresas recebem os quatro tipos automaticamente.
+Para atualizar uma instalação existente, execute `npm.cmd run migrate:document-types` e reinicie o servidor. A migração também faz parte de `migrate:deploy`, preserva documentos existentes e pode ser repetida sem sobrescrever as configurações nem recriar tipos excluídos ou renomeados. Novas empresas recebem os quatro tipos automaticamente.
 
 Validação isolada no PostgreSQL local: `node scripts/test-document-types.js`.
 

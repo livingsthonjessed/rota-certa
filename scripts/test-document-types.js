@@ -82,6 +82,52 @@ async function main(){
  await req(route,'POST',{...doc,documentType:'Outros gastos'},a,201);
  await req(route,'POST',{...doc,documentType:'Unknown'},a,400);
  await req(`/api/admin/trip-documents/${id}`,'DELETE',undefined,a);
+
+ // CRUD, case-insensitive uniqueness and company boundaries.
+ for(const body of [{name:'   ',nature:'credit'},{name:'x'.repeat(31),nature:'credit'},{name:'Teste',nature:'invalid'}])await req(endpoint,'POST',body,a,400);
+ const custom=(await req(endpoint,'POST',{name:'  Pedagio   extra  ',nature:'debit'},a,201)).data;
+ assert.equal(custom.name,'Pedagio extra');assert.equal(custom.requires_amount,true);assert.equal(custom.requires_fuel,false);checks+=3;
+ await req(endpoint,'POST',{name:'pedagio EXTRA',nature:'credit'},a,409);
+ const other=(await req(endpoint,'POST',{name:'Pedagio extra',nature:'credit'},b,201)).data;
+ await req(`${endpoint}/${custom.id}`,'PUT',{name:'Outro',nature:'credit'},b,404);
+ await req(`${endpoint}/${custom.id}`,'DELETE',undefined,b,404);
+ await req(endpoint,'POST',{name:'Proibido',nature:'debit'},driverCookie,403);
+ await req(`${endpoint}/${custom.id}`,'PUT',{name:'Proibido',nature:'debit'},driverCookie,403);
+ await req(`${endpoint}/${custom.id}`,'DELETE',undefined,driverCookie,403);
+ await req(route,'POST',{...doc,documentType:custom.name,amount:null},a,400);
+ const customDoc=(await req(route,'POST',{...doc,documentType:custom.name,amount:10},a,201)).data.id;
+ await req(`${endpoint}/${custom.id}`,'DELETE',undefined,a,409);
+ await req(`${endpoint}/${custom.id}`,'PUT',{name:'Taxa de estrada',nature:'credit'},a);
+ let listed=(await req(route,'GET',undefined,a)).data.items.find(row=>row.id===customDoc);
+ assert.equal(listed.document_type,'Taxa de estrada');assert.equal(listed.nature,'credit');assert.equal(listed.amount,10);checks+=3;
+ await req(route,'POST',{...doc,documentType:custom.name},a,400);
+ await req(`/api/admin/trip-documents/${customDoc}`,'PUT',{documentType:'Taxa de estrada',amount:15,description:'Editado'},a);
+ await req(`${endpoint}/${custom.id}`,'PUT',{name:'CTE',nature:'debit'},a,409);
+ await req(`${endpoint}/${custom.id}`,'PUT',{name:'',nature:'credit'},a,400);
+ assert.equal((await req(endpoint,'GET',undefined,b)).data.items.find(row=>row.id===other.id).name,'Pedagio extra');checks++;
+ await req(`/api/admin/trip-documents/${customDoc}`,'DELETE',undefined,a);
+ await req(`${endpoint}/${custom.id}`,'DELETE',undefined,a);
+ await req(`${endpoint}/${custom.id}`,'DELETE',undefined,a,404);
+ assert.equal((await req(endpoint,'GET',undefined,a)).data.items.some(row=>row.id===custom.id),false);checks++;
+
+ // Renaming preserves special field requirements, even across future deployments.
+ const cte=types.find(row=>row.name==='CTE'),fuel=types.find(row=>row.name==='Abastecimento');
+ await req(`${endpoint}/${cte.id}`,'PUT',{name:'Conhecimento',nature:'credit'},a);
+ await req(`${endpoint}/${fuel.id}`,'PUT',{name:'Combustivel',nature:'debit'},a);
+ await req(route,'POST',{...doc,documentType:'Conhecimento',amount:null},a,201);
+ await req(route,'POST',{...doc,documentType:'Combustivel'},a,400);
+ await req(route,'POST',{...doc,documentType:'Combustivel',km:123,dieselValue:6.5},a,201);
+ await req(`${endpoint}/${types.find(row=>row.name==='Pagamento cliente').id}`,'DELETE',undefined,a);
+ await db.query('BEGIN');await migrateDocumentTypes(db);await db.query('COMMIT');
+ const afterMigration=(await req(endpoint,'GET',undefined,a)).data.items;
+ assert.equal(afterMigration.some(row=>['CTE','Abastecimento','Pagamento cliente'].includes(row.name)),false);
+ assert.equal(afterMigration.find(row=>row.id===cte.id).requires_amount,false);
+ assert.equal(afterMigration.find(row=>row.id===fuel.id).requires_fuel,true);checks+=3;
+ // An empty catalogue remains empty after migration and can accept a new type.
+ for(const item of (await req(endpoint,'GET',undefined,b)).data.items)await req(`${endpoint}/${item.id}`,'DELETE',undefined,b);
+ await db.query('BEGIN');await migrateDocumentTypes(db);await db.query('COMMIT');
+ assert.deepEqual((await req(endpoint,'GET',undefined,b)).data.items,[]);checks++;
+ await req(endpoint,'POST',{name:'Novo tipo',nature:'credit'},b,201);
  console.log(`${checks} verificações passaram: migração, persistência, documentos e isolamento por empresa/perfil.`);
 }
 main().catch(error=>{console.error(error);process.exitCode=1}).finally(async()=>{
